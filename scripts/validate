@@ -1,0 +1,193 @@
+#!/usr/bin/env python3
+"""Validate the specd plugin against docs/AUTHORING.md. Run from the repo root.
+
+Usage: validate [--help]
+
+Prints one line per check (ok / FAIL) and exits 1 if any check failed. Stdlib only.
+"""
+import glob
+import json
+import os
+import re
+import sys
+
+ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+SPINE_MAX_LINES = 150
+DESCRIPTION_MAX = 1536
+CLAUDE_MD_MAX_LINES = 60
+MODEL_NAME = re.compile(r"\b(opus|sonnet|haiku)\b|claude-")
+MODEL_NAME_ALLOWED = {"skills/_shared/specd-yml.md"}
+HARDCODED_PATH = re.compile(r"(^|[\s`(\"'])~/|/Users/")
+LINK = re.compile(r"\]\(([^)\s#]+)\)")
+SEMVER = re.compile(r"^\d+\.\d+\.\d+$")
+
+failures = []
+
+
+def check(cond, label, detail=""):
+    if cond:
+        print("ok    %s" % label)
+    else:
+        print("FAIL  %s%s" % (label, (": " + detail) if detail else ""))
+        failures.append(label)
+
+
+def rel(path):
+    return os.path.relpath(path, ROOT)
+
+
+def read(path):
+    with open(path, encoding="utf-8") as f:
+        return f.read()
+
+
+def load_json(relpath):
+    try:
+        return json.loads(read(os.path.join(ROOT, relpath)))
+    except (OSError, ValueError) as e:
+        check(False, "%s parses" % relpath, str(e))
+        return None
+
+
+def frontmatter(text):
+    """Parse a flat YAML frontmatter block. Supports `key: value` and `key: >` / `|` blocks."""
+    if not text.startswith("---\n"):
+        return None
+    end = text.find("\n---", 4)
+    if end < 0:
+        return None
+    data, key = {}, None
+    for line in text[4:end].splitlines():
+        m = re.match(r"^([A-Za-z][\w-]*):\s*(.*)$", line)
+        if m:
+            key, value = m.group(1), m.group(2).strip()
+            data[key] = "" if value in (">", "|", ">-", "|-") else value.strip("\"'")
+        elif key and line.startswith(" "):
+            data[key] = (data[key] + " " + line.strip()).strip()
+    return data
+
+
+def check_links(path, text):
+    for target in LINK.findall(text):
+        if re.match(r"^[a-z]+:", target) or target.startswith("/"):
+            continue
+        resolved = os.path.normpath(os.path.join(os.path.dirname(path), target))
+        check(os.path.exists(resolved), "%s link %s resolves" % (rel(path), target))
+
+
+def check_text_rules(path, text):
+    r = rel(path)
+    check(not HARDCODED_PATH.search(text), "%s has no hardcoded home paths" % r)
+    if r not in MODEL_NAME_ALLOWED:
+        m = MODEL_NAME.search(text)
+        check(not m, "%s uses model roles, not names" % r, m.group(0) if m else "")
+
+
+def check_manifests():
+    plugin = load_json(".claude-plugin/plugin.json")
+    market = load_json(".claude-plugin/marketplace.json")
+    if not plugin or not market:
+        return
+    check(plugin.get("name") == "specd", "plugin.json name is specd")
+    check(SEMVER.match(plugin.get("version", "")) is not None, "plugin.json version is semver")
+    check(len(plugin.get("description", "")) >= 50, "plugin.json description present")
+    check(bool(plugin.get("license")), "plugin.json license present")
+    check(bool(plugin.get("author", {}).get("name")), "plugin.json author.name present")
+    check(isinstance(plugin.get("repository"), str), "plugin.json repository is a string")
+    check(market.get("name") == "specd", "marketplace.json name is specd")
+    check(bool(market.get("owner", {}).get("name")), "marketplace.json owner.name present")
+    entries = market.get("plugins", [])
+    check(len(entries) == 1 and entries[0].get("name") == "specd", "marketplace lists specd")
+    if entries:
+        e = entries[0]
+        check(e.get("source") == "./", "marketplace source is ./")
+        check(e.get("version") == plugin.get("version"), "marketplace version matches plugin")
+        check(e.get("description") == plugin.get("description"),
+              "marketplace description matches plugin")
+
+
+def check_skills():
+    for d in sorted(glob.glob(os.path.join(ROOT, "skills", "*"))):
+        name = os.path.basename(d)
+        if name == "_shared":
+            check(not os.path.exists(os.path.join(d, "SKILL.md")), "skills/_shared has no SKILL.md")
+            continue
+        spine = os.path.join(d, "SKILL.md")
+        if not os.path.isfile(spine):
+            check(False, "skills/%s/SKILL.md exists" % name)
+            continue
+        text = read(spine)
+        fm = frontmatter(text)
+        check(fm is not None, "skills/%s frontmatter parses" % name)
+        if fm is None:
+            continue
+        check(fm.get("name") == name, "skills/%s frontmatter name matches folder" % name)
+        desc = fm.get("description", "")
+        check(bool(desc), "skills/%s description present" % name)
+        check(len(desc) <= DESCRIPTION_MAX, "skills/%s description <= %d chars" % (name, DESCRIPTION_MAX),
+              str(len(desc)))
+        lines = text.count("\n") + (0 if text.endswith("\n") else 1)
+        check(lines <= SPINE_MAX_LINES, "skills/%s/SKILL.md <= %d lines" % (name, SPINE_MAX_LINES),
+              str(lines))
+    for path in sorted(glob.glob(os.path.join(ROOT, "skills", "**", "*.md"), recursive=True)):
+        text = read(path)
+        check_links(path, text)
+        check_text_rules(path, text)
+
+
+def check_agents():
+    for path in sorted(glob.glob(os.path.join(ROOT, "agents", "*.md"))):
+        name = os.path.splitext(os.path.basename(path))[0]
+        text = read(path)
+        fm = frontmatter(text)
+        check(fm is not None, "agents/%s frontmatter parses" % name)
+        if fm is None:
+            continue
+        check(fm.get("name") == name, "agents/%s frontmatter name matches file" % name)
+        check(bool(fm.get("description")), "agents/%s description present" % name)
+        check(bool(fm.get("tools")), "agents/%s tools declared" % name)
+        check_links(path, text)
+        check_text_rules(path, text)
+
+
+def check_hooks():
+    path = os.path.join(ROOT, "hooks", "hooks.json")
+    if not os.path.exists(path):
+        return
+    data = load_json("hooks/hooks.json")
+    if data is not None:
+        check(isinstance(data.get("hooks"), dict), "hooks.json has a hooks object")
+
+
+def check_scripts():
+    for path in sorted(glob.glob(os.path.join(ROOT, "scripts", "*"))):
+        if os.path.isdir(path) or path.endswith(".pyc"):
+            continue
+        r = rel(path)
+        check(os.access(path, os.X_OK), "%s is executable" % r)
+        check(read(path).startswith("#!"), "%s has a shebang" % r)
+
+
+def check_claude_md():
+    path = os.path.join(ROOT, "CLAUDE.md")
+    if os.path.exists(path):
+        lines = read(path).count("\n")
+        check(lines <= CLAUDE_MD_MAX_LINES, "CLAUDE.md <= %d lines" % CLAUDE_MD_MAX_LINES, str(lines))
+
+
+def main(argv):
+    if "--help" in argv or "-h" in argv:
+        print(__doc__.strip())
+        return 0
+    check_manifests()
+    check_skills()
+    check_agents()
+    check_hooks()
+    check_scripts()
+    check_claude_md()
+    print("\n%d failure(s)" % len(failures) if failures else "\nall checks passed")
+    return 1 if failures else 0
+
+
+if __name__ == "__main__":
+    sys.exit(main(sys.argv[1:]))
