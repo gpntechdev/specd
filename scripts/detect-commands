@@ -1,0 +1,229 @@
+#!/usr/bin/env python3
+"""Detect the project's test, lint, format, typecheck and build commands, printed as JSON.
+
+Usage: detect-commands [--from DIR] [--config PATH]
+
+Cascade per command, first hit wins: specd.yml `commands.*` override -> Makefile targets ->
+package.json scripts -> language manifests. A command is only reported when the tool is
+evidenced; nothing is invented. --config defaults to the specd.yml found upward from DIR
+(`<dir>/specd.yml`, then `<dir>/.specd/specd.yml`). Stdlib only.
+"""
+import json
+import os
+import re
+import subprocess
+import sys
+
+COMMANDS = ["test", "lint", "format", "typecheck", "build"]
+TARGET_NAMES = {
+    "test": ["test"],
+    "lint": ["lint"],
+    "format": ["format", "fmt"],
+    "typecheck": ["typecheck", "type-check", "check-types", "check"],
+    "build": ["build"],
+}
+SCRIPT_NAMES = {
+    "test": ["test"],
+    "lint": ["lint"],
+    "format": ["format", "prettier"],
+    "typecheck": ["typecheck", "type-check", "tsc"],
+    "build": ["build"],
+}
+LOCKFILES = [("pnpm-lock.yaml", "pnpm"), ("yarn.lock", "yarn"), ("bun.lockb", "bun"),
+             ("bun.lock", "bun")]
+
+
+def find_config(start):
+    d = os.path.abspath(start)
+    while True:
+        for rel in ("specd.yml", os.path.join(".specd", "specd.yml")):
+            p = os.path.join(d, rel)
+            if os.path.isfile(p):
+                return p
+        parent = os.path.dirname(d)
+        if parent == d:
+            return None
+        d = parent
+
+
+def read_text(path):
+    try:
+        with open(path, encoding="utf-8", errors="replace") as f:
+            return f.read()
+    except OSError:
+        return ""
+
+
+def config_commands(path):
+    """Return the `commands:` section of a flat specd.yml as {key: value}."""
+    out, section = {}, None
+    for raw in read_text(path).splitlines():
+        line = raw.split("#", 1)[0].rstrip()
+        if not line.strip():
+            continue
+        m = re.match(r"^(\s*)([A-Za-z_][\w]*):\s*(.*)$", line)
+        if not m:
+            continue
+        indent, key, value = len(m.group(1)), m.group(2), m.group(3).strip().strip("\"'")
+        if indent == 0:
+            section = key
+        elif section == "commands":
+            out[key] = value
+    return out
+
+
+def first(names, available):
+    for n in names:
+        if n in available:
+            return n
+    return None
+
+
+def load_json_scripts(path, warnings):
+    try:
+        data = json.loads(read_text(path))
+        scripts = data.get("scripts", {}) if isinstance(data, dict) else {}
+        return scripts if isinstance(scripts, dict) else {}
+    except ValueError as e:
+        warnings.append("%s is not valid JSON: %s" % (os.path.basename(path), e))
+        return {}
+
+
+def detect(root, config, warnings):
+    found = {k: {"value": "", "source": None} for k in COMMANDS}
+    runner = None
+
+    def put(key, value, source):
+        if value and not found[key]["value"]:
+            found[key] = {"value": value, "source": source}
+
+    if config:
+        for key, value in config_commands(config).items():
+            if key in found:
+                put(key, value, "config")
+
+    makefile = os.path.join(root, "Makefile")
+    if os.path.isfile(makefile):
+        targets = set(re.findall(r"^([A-Za-z0-9_.-]+):", read_text(makefile), re.M))
+        for key in COMMANDS:
+            t = first(TARGET_NAMES[key], targets)
+            if t:
+                put(key, "make " + t, "Makefile")
+
+    pkg = os.path.join(root, "package.json")
+    if os.path.isfile(pkg):
+        runner = "npm"
+        for lock, name in LOCKFILES:
+            if os.path.isfile(os.path.join(root, lock)):
+                runner = name
+                break
+        scripts = load_json_scripts(pkg, warnings)
+        for key in COMMANDS:
+            s = first(SCRIPT_NAMES[key], scripts)
+            if s:
+                put(key, "%s test" % runner if s == "test" else "%s run %s" % (runner, s),
+                    "package.json")
+
+    pyproject = os.path.join(root, "pyproject.toml")
+    if os.path.isfile(pyproject):
+        text = read_text(pyproject)
+        if "pytest" in text or os.path.isdir(os.path.join(root, "tests")):
+            put("test", "pytest", "pyproject.toml")
+        if "[tool.ruff]" in text or "ruff" in text:
+            put("lint", "ruff check .", "pyproject.toml")
+            put("format", "ruff format .", "pyproject.toml")
+        if "[tool.mypy]" in text or "mypy" in text:
+            put("typecheck", "mypy .", "pyproject.toml")
+        elif "[tool.pyright]" in text:
+            put("typecheck", "pyright", "pyproject.toml")
+
+    if os.path.isfile(os.path.join(root, "go.mod")):
+        put("test", "go test ./...", "go.mod")
+        put("lint", "go vet ./...", "go.mod")
+        put("format", "gofmt -l .", "go.mod")
+        put("build", "go build ./...", "go.mod")
+
+    cargo = os.path.join(root, "Cargo.toml")
+    if os.path.isfile(cargo):
+        put("test", "cargo test", "Cargo.toml")
+        if os.path.isfile(os.path.join(root, "clippy.toml")) or "[lints]" in read_text(cargo):
+            put("lint", "cargo clippy", "Cargo.toml")
+        put("format", "cargo fmt --check", "Cargo.toml")
+        put("build", "cargo build", "Cargo.toml")
+
+    if os.path.isfile(os.path.join(root, "pom.xml")):
+        put("test", "mvn -q test", "pom.xml")
+        put("build", "mvn -q package", "pom.xml")
+
+    for gradle in ("build.gradle", "build.gradle.kts"):
+        if os.path.isfile(os.path.join(root, gradle)):
+            g = "./gradlew" if os.path.isfile(os.path.join(root, "gradlew")) else "gradle"
+            put("test", g + " test", gradle)
+            put("build", g + " build", gradle)
+            break
+
+    if os.path.isfile(os.path.join(root, "Gemfile")):
+        if os.path.isdir(os.path.join(root, "spec")):
+            put("test", "bundle exec rspec", "Gemfile")
+        if os.path.isfile(os.path.join(root, ".rubocop.yml")):
+            put("lint", "bundle exec rubocop", "Gemfile")
+
+    composer = os.path.join(root, "composer.json")
+    if os.path.isfile(composer):
+        scripts = load_json_scripts(composer, warnings)
+        for key in COMMANDS:
+            s = first(SCRIPT_NAMES[key], scripts)
+            if s:
+                put(key, "composer run " + s, "composer.json")
+
+    try:
+        entries = os.listdir(root)
+    except OSError:
+        entries = []
+    if any(e.endswith(".csproj") for e in entries):
+        put("test", "dotnet test", "csproj")
+        put("build", "dotnet build", "csproj")
+        put("format", "dotnet format --verify-no-changes", "csproj")
+
+    return runner, found
+
+
+def main(argv):
+    start, config = ".", None
+    if "--help" in argv or "-h" in argv:
+        print(__doc__.strip())
+        return 0
+    for flag in ("--from", "--config"):
+        if flag in argv:
+            i = argv.index(flag)
+            if i + 1 >= len(argv):
+                print("specd: %s needs a value" % flag, file=sys.stderr)
+                return 2
+            if flag == "--from":
+                start = argv[i + 1]
+            else:
+                config = argv[i + 1]
+    start = os.path.abspath(start)
+    if not os.path.isdir(start):
+        print("specd: cannot read directory %s" % start, file=sys.stderr)
+        return 1
+    try:
+        r = subprocess.run(["git", "-C", start, "rev-parse", "--show-toplevel"],
+                           capture_output=True, text=True)
+        root = r.stdout.strip() if r.returncode == 0 else start
+    except OSError:
+        root = start
+    if config is None:
+        config = find_config(start)
+    elif not os.path.isfile(config):
+        print("specd: config not found: %s" % config, file=sys.stderr)
+        return 1
+    warnings = []
+    runner, commands = detect(root, config, warnings)
+    print(json.dumps({"root": root, "runner": runner, "commands": commands,
+                      "warnings": warnings}, indent=2))
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main(sys.argv[1:]))
