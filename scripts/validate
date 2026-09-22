@@ -20,6 +20,10 @@ MODEL_NAME_ALLOWED = {"skills/_shared/specd-yml.md"}
 HARDCODED_PATH = re.compile(r"(^|[\s`(\"'])~/|/Users/")
 LINK = re.compile(r"\]\(([^)\s#]+)\)")
 SEMVER = re.compile(r"^\d+\.\d+\.\d+$")
+PLUGIN_ROOT_REF = re.compile(r"\$\{CLAUDE_PLUGIN_ROOT\}/([^\s\"'\\\\]+)")
+READ_ONLY_AGENTS = {"explorer", "researcher", "critic", "reviewer", "skill-auditor"}
+WRITE_TOOLS = re.compile(r"\b(Write|Edit|MultiEdit|NotebookEdit|Bash)\b")
+GENERATED_CLAUDE_MD = "skills/init/templates/CLAUDE.md"
 
 failures = []
 
@@ -83,6 +87,10 @@ def check_text_rules(path, text):
         check(not m, "%s uses model roles, not names" % r, m.group(0) if m else "")
 
 
+def is_template(path):
+    return "/templates/" in ("/" + rel(path).replace(os.sep, "/"))
+
+
 def check_manifests():
     plugin = load_json(".claude-plugin/plugin.json")
     market = load_json(".claude-plugin/marketplace.json")
@@ -131,7 +139,8 @@ def check_skills():
               str(lines))
     for path in sorted(glob.glob(os.path.join(ROOT, "skills", "**", "*.md"), recursive=True)):
         text = read(path)
-        check_links(path, text)
+        if not is_template(path):
+            check_links(path, text)
         check_text_rules(path, text)
 
 
@@ -145,7 +154,11 @@ def check_agents():
             continue
         check(fm.get("name") == name, "agents/%s frontmatter name matches file" % name)
         check(bool(fm.get("description")), "agents/%s description present" % name)
-        check(bool(fm.get("tools")), "agents/%s tools declared" % name)
+        tools = fm.get("tools", "")
+        check(bool(tools), "agents/%s tools declared" % name)
+        if name in READ_ONLY_AGENTS:
+            m = WRITE_TOOLS.search(tools)
+            check(not m, "agents/%s is read-only" % name, m.group(0) if m else "")
         check_links(path, text)
         check_text_rules(path, text)
 
@@ -155,13 +168,17 @@ def check_hooks():
     if not os.path.exists(path):
         return
     data = load_json("hooks/hooks.json")
-    if data is not None:
-        check(isinstance(data.get("hooks"), dict), "hooks.json has a hooks object")
+    if data is None:
+        return
+    check(isinstance(data.get("hooks"), dict), "hooks.json has a hooks object")
+    for target in PLUGIN_ROOT_REF.findall(json.dumps(data)):
+        check(os.path.exists(os.path.join(ROOT, target)), "hooks.json references %s" % target)
 
 
 def check_scripts():
-    for path in sorted(glob.glob(os.path.join(ROOT, "scripts", "*"))):
-        if os.path.isdir(path) or path.endswith(".pyc"):
+    paths = glob.glob(os.path.join(ROOT, "scripts", "*")) + glob.glob(os.path.join(ROOT, "hooks", "*"))
+    for path in sorted(paths):
+        if os.path.isdir(path) or path.endswith((".pyc", ".json")):
             continue
         r = rel(path)
         check(os.access(path, os.X_OK), "%s is executable" % r)
@@ -169,10 +186,11 @@ def check_scripts():
 
 
 def check_claude_md():
-    path = os.path.join(ROOT, "CLAUDE.md")
-    if os.path.exists(path):
-        lines = read(path).count("\n")
-        check(lines <= CLAUDE_MD_MAX_LINES, "CLAUDE.md <= %d lines" % CLAUDE_MD_MAX_LINES, str(lines))
+    for r in ("CLAUDE.md", GENERATED_CLAUDE_MD):
+        path = os.path.join(ROOT, r)
+        if os.path.exists(path):
+            lines = read(path).count("\n")
+            check(lines <= CLAUDE_MD_MAX_LINES, "%s <= %d lines" % (r, CLAUDE_MD_MAX_LINES), str(lines))
 
 
 def main(argv):
