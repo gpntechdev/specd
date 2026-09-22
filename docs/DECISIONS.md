@@ -77,3 +77,99 @@ Consequences: a request outside the flow may occasionally run without the princi
 after M2, once the flow has shipped a real feature: if ad-hoc requests miss the skill often
 enough to matter, add a `UserPromptSubmit` hook that reminds the model to invoke it, and record
 that here.
+
+## 2026-09-22 M1: toolsmith stays in M6; init only names it
+
+Context: the M1 request listed `toolsmith` with the init commands. PLAN 3.5 calls it from init's
+handoff, but its substance (allowlist search, quarantine, two-stage audit, `skills.lock`) is M6.
+Decision: no `toolsmith` skill in M1. `init`, `onboard` and `scaffold` end their handoff with one
+line naming `/specd:toolsmith` as a later step.
+Consequences: a fresh workspace has Context7 and nothing else until M6; the handoff line is the
+only place to update when the command lands.
+
+## 2026-09-22 M1: secrets guardrail hook ships now, file tools only
+
+Context: PLAN 3.5 lists the guardrail under `init`; the M0 entry above expected `hooks/` to
+arrive with the gate hook in M2. The hook is plugin-level, so `init` has nothing to write for it.
+Decision: `hooks/hooks.json` registers a `PreToolUse` hook on `Read|Edit|Write|MultiEdit|
+NotebookEdit`; `hooks/secrets-guard` denies (exit 2) a fixed list of secret file patterns
+(`.env*` minus example files, keys, certificates, credential stores). Bash inspection (`cat
+.env`) is out of scope.
+Consequences: `hooks/` exists before M2, amending the M0 entry. A leak through Bash is the
+trigger to revisit; parsing shell is not worth it before one is observed.
+
+## 2026-09-22 M1: onboard resumes from a draft marker, not a state file
+
+Context: `onboard` must resume after `/clear` from the first unfinished section; files are the
+state.
+Decision: every onboard template starts with `<!-- specd:draft -->`. A section is unfinished when
+its index file is missing or still carries the marker; sign-off removes the marker and commits.
+No `onboard.yml`, no key in `specd.yml`.
+Consequences: resume is a file check. Project kind is not persisted either: `detect-repo` runs
+at the start of `onboard` and `scaffold`, and after scaffold the repo correctly reads as
+brownfield.
+
+## 2026-09-22 M1: scaffold builds inline; the reviewer pass arrives with M2
+
+Context: PLAN 3.5 says scaffold runs as a quick-tier feature with a gate and a review; the quick
+flow and the `reviewer` agent are M2/M3.
+Decision: `scaffold` writes `<spec_root>/scaffold/{tasks.md,state.yml}` (tier `quick`,
+`retention: clean`), passes G3 on the task list, builds in the main thread applying
+`_shared/principles.md`, proves build/test/lint with at most three repairs per command, passes
+G5 on the diff, records `commands.*` and commits. No reviewer in M1.
+Consequences: the skeleton gets both gates but no fresh-context review until M2, when
+`spec/scaffold/` is a closed quick feature that `close` or `spec-clean` remove like any other.
+
+## 2026-09-22 M1: commit policy for init and onboard; private mode
+
+Context: PLAN fixes git authority for features (up to a draft PR) but not for setup commands.
+Decision: `init` commits once (`chore: initialise specd workspace`), `onboard` once per
+signed-off section (`docs: onboard <section>`), `scaffold` once at G5. Private mode
+(`init-workspace --private`) is the `.git/info/exclude` flag from PLAN 3.1 made concrete:
+`.specd/`, `CLAUDE.local.md` and `.claude/settings.local.json` are excluded, `.mcp.json` is
+skipped with a `claude mcp add` hint, and `init` does not commit.
+Consequences: a normal workspace has a clean tree after each command; a private one never shows
+specd files to the team and relies on the user's own MCP setup.
+
+## 2026-09-22 M1: gates, handoff and state.yml are shared blocks from now
+
+Context: AUTHORING 3 names the handoff format and gate protocol as shared blocks; `scaffold` is
+the first step with gates and a `state.yml`.
+Decision: `_shared/handoff.md` (the closing block), `_shared/gates.md` (show, ask, record in
+`state.yml`, refuse when unapproved) and `_shared/state-yml.md` (flat two-level default file:
+feature, tier, step, retention, gates G1..G5, tasks, timestamps) exist now. M2 extends
+`state.yml` with triage signals and review rounds and records the keys here.
+Consequences: every later step links these three files and states only its delta.
+
+## 2026-09-22 M1: init-workspace owns every init file operation; config-set is the only writer
+
+Context: init touches eight artifacts, all mechanical (copy, merge, marker insert), and
+`specd.yml` must be patched key by key by both `init` and `config`.
+Decision: `scripts/init-workspace` creates or merges all of them idempotently, including the
+CLAUDE.md pointer block, and reports created/merged/skipped. `scripts/config-set` patches
+`specd.yml` values in place, all-or-nothing, refusing list keys. `init` writes the detected
+`commands.*` (marked derived) rather than leaving them empty.
+Consequences: skills never edit config or settings files by hand; a bug in either script is
+fixed once. Detected commands are visible and correctable in `specd.yml`.
+
+## 2026-09-22 M1: explorer has no Bash; the caller passes the model role
+
+Context: AUTHORING 10 keeps read-only agents without `Write`, `Edit` or `Bash`; AUTHORING 8
+forbids model names outside `specd-yml.md`, which rules out `model:` in agent frontmatter.
+Decision: `explorer` runs with `Read, Grep, Glob`; every git fact comes from `detect-repo` in
+the main thread. `researcher` (`WebSearch`, `WebFetch`, Context7) is included minimal for the
+greenfield architecture interview. The calling skill reads `models.<role>` from `specd.yml` and
+passes it as the agent's model parameter.
+Consequences: agents are portable across projects with different model mappings. If the
+runtime ignores the per-call model parameter, the fallback is a validator allowlist for
+`model:` lines in `agents/`, to be recorded here.
+
+## 2026-09-22 M1: external pages snapshot to `<workspace_root>/sources/`
+
+Context: onboard lets the user paste or point at wiki pages; PLAN 3.7 gives the snapshot and
+refresh util to M5.
+Decision: snapshots go to `<workspace_root>/sources/<slug>.md` with a provenance header and
+redaction counted; `docs/` links and condenses, never copies. Redaction is a documented rule in
+`skills/onboard/references/sources.md` until M5 provides the util.
+Consequences: raw material is separated from curated knowledge and is never auto-loaded; M5's
+refresh util has a folder to own.

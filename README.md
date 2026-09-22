@@ -3,7 +3,7 @@
 Spec-driven development workflow for AI coding assistants, packaged as a Claude Code plugin.
 Read "spec'd". Stack-agnostic; lives inside a code repo (`.specd/`) or wraps around it.
 
-Status: M0 (foundations). See `docs/PLAN.md` for the plan of record and milestones.
+Status: M1 (init, onboard, scaffold in embedded mode). See `docs/PLAN.md` for the plan of record and milestones.
 
 ## Install
 
@@ -22,6 +22,12 @@ claude --plugin-dir /path/to/specd
 
 Then `/reload-plugins` after edits. Skills appear as `/specd:<name>`.
 
+## Getting started
+
+In a repository: `/specd:init` (mechanical setup, one short interview), then `/specd:onboard`
+once per docs section with `/clear` in between, then `/specd:scaffold` on a greenfield repo.
+Each command ends with a handoff block naming the next one.
+
 ## Layout
 
 ```
@@ -30,7 +36,8 @@ skills/<name>/    SKILL.md spine + references/ + templates/
 skills/_shared/   blocks referenced by many skills
 agents/           subagent definitions
 hooks/            gate enforcement, secrets guardrail
-scripts/          deterministic helpers (validate, resolve-paths, ...)
+scripts/          deterministic helpers: validate, resolve-paths, detect-repo,
+                  detect-commands, config-set, init-workspace
 docs/             PLAN.md, DECISIONS.md, AUTHORING.md
 ```
 
