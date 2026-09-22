@@ -63,3 +63,17 @@ Context: PLAN 4 lists `agents/` and `hooks/`; git does not track empty folders.
 Decision: no placeholder files. `agents/` arrives with the first agent (M1), `hooks/` with the
 gate hook (M2). The validator already checks both when present.
 Consequences: the tree matches PLAN 4 only after M2; README shows the full layout anyway.
+
+## 2026-09-22 M0: principles auto-invocation stays probabilistic until after M2
+
+Context: Claude Code invokes a skill when the model judges its `description` relevant; nothing
+forces it. In a headless test the same small coding request skipped the skill with a descriptive
+wording and invoked it with an imperative one ("Invoke first, before any tool call, whenever...,
+however small the task"). One sample each, so the wording helps but is not a guarantee.
+Decision: keep description-driven invocation for ad-hoc coding requests. Inside the flow the
+skills that write code (`implement`, `fix`, `scaffold`) link `_shared/principles.md` in their own
+protocol, so the principles load deterministically there. No hook.
+Consequences: a request outside the flow may occasionally run without the principles. Revisit
+after M2, once the flow has shipped a real feature: if ad-hoc requests miss the skill often
+enough to matter, add a `UserPromptSubmit` hook that reminds the model to invoke it, and record
+that here.
