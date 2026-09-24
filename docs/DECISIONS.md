@@ -243,3 +243,15 @@ Decision: each spine carries one protocol step marked `<!-- specd:critic-hook: M
 states the M3 behaviour and, until then, prints `critic: not available until M3`. M3 replaces
 the marker line, nothing else moves.
 Consequences: the user sees where the critic will run; the gate summary is unchanged.
+
+## 2026-09-24 M2: the architect writes `design.md` itself; sections are selected before it runs
+
+Context: AUTHORING 5 says subagents return bounded summaries, never file dumps; a design
+draft is a whole file. PLAN 3.3 wants only the sections the feature needs.
+Decision: `architect` gets `Write` for exactly one path, `<spec_root>/<feature>/design.md`,
+writes the draft there and returns a summary (sections, decisions, open questions,
+pointers) of at most 40 lines. The main thread selects the sections from a signal table in
+`skills/design/references/sections.md` before dispatching, and the user can veto the
+selection. The tier does not change the selection in this milestone.
+Consequences: the draft never passes through the conversation; the validator keeps
+`architect` out of the read-only set. A second writable path is a new decision.
