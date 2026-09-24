@@ -30,7 +30,7 @@ testing strategy (A5). Round 3, only if the user asks "what is recommended": dis
 `researcher` with one question per topic (at most three), the constraints already chosen, and
 the `judgment` model role; present the findings as options, let the user pick, and write the
 pick plus its reason into `## Key decisions`. Each decision with a lasting consequence also
-becomes a file in `decisions/` (use `./templates/decision.md`); reference it, do not repeat it.
+becomes a file in `decisions/` (use `../../_shared/templates/decision.md`); reference it, do not repeat it.
 
 `scaffold` reads the first four headings of `overview.md` verbatim, so `## Stack`, `## Structure`,
 `## Tooling` and `## Testing strategy` must be concrete: names and commands, not intentions.
