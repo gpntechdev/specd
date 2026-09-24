@@ -310,3 +310,15 @@ M3 starts. The plugin's own verification is script tests and a headless smoke ru
 `start`, `status` and `specify` in a scratch repo.
 Consequences: PLAN 5 row M2 says "built"; the "done" mark and any protocol fixes follow the
 run.
+
+## 2026-09-24 M2: close asks which design decisions are durable
+
+Context: the headless smoke run of the full flow (a one-flag CLI feature) distilled four
+decision files, each about that feature's own files. Decisions the architect lists are
+alternatives it weighed, not necessarily knowledge the project needs for years.
+Decision: `close` lists the `### D<n>` blocks and asks which are durable, with a test in
+`skills/close/references/distill.md`: a later feature could reasonably choose otherwise and
+would want to know why. The rest become one line each under Notes in
+`<docs_root>/features/<feature>.md`.
+Consequences: `decisions/` stays small; the design keeps listing every weighed alternative
+because tasks and review use them.

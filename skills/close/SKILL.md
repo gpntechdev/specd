@@ -46,9 +46,12 @@ again to distill or clean it).
    Confirm in one question: distill / clean / keep, with the default first.
 2. **distill.** Per `distill.md`: (a) copy `./templates/feature.md` to
    `<docs_root>/features/<feature>.md` and fill it from `spec.md`, `tasks.md`, `review.md`
-   and `state.yml` (PR URL); (b) for each `### D<n>` in `design.md`, copy
-   `_shared/templates/decision.md` to `<docs_root>/decisions/NNNN-<kebab-title>.md` with the
-   next free number, status accepted, and append its row to `decisions/README.md`; (c) for a
+   and `state.yml` (PR URL); (b) list the `### D<n>` blocks of `design.md` with one line each
+   and ask which are durable per the test in `distill.md` (default: the ones that pass it);
+   for each kept one copy `_shared/templates/decision.md` to
+   `<docs_root>/decisions/NNNN-<kebab-title>.md` with the next free number, status accepted,
+   and append its row to `decisions/README.md`; the rest stay in the feature record's
+   Notes as one line each; (c) for a
    `## Data model` or `## API and contracts` section, name the `architecture/<area>.md` or
    `data-models/<domain>.md` it changes and propose one patch per file: show it, ask, apply.
    No draft markers on any of these; they are signed off by this run. Then `git rm -r` the

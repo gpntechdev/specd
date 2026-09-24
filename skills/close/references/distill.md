@@ -6,8 +6,11 @@ What survives the spec folder, and where it goes.
 
 - The feature record: what it does, where it lives, its ACs with evidence, how to verify.
   One page in `features/<feature>.md`.
-- Decisions: every `### D<n>` in `design.md` that still holds after implementation. One file
-  each in `decisions/`, numbered after the highest existing `NNNN-` file (four digits, never
+- Decisions: the `### D<n>` blocks of `design.md` that pass the durability test: a later
+  feature could reasonably choose otherwise and would want to know why this one did not.
+  A choice that only affects this feature's own files, or that the conventions already
+  dictate, is a Notes line in the feature record, not a decision file. One file each in
+  `decisions/`, numbered after the highest existing `NNNN-` file (four digits, never
   reused), status accepted, date today, context and alternatives from the design block,
   consequences updated with what the implementation showed. A row in `decisions/README.md`.
 - Deltas to the architecture map: a new area, an entry point, a boundary that changed. Edit
