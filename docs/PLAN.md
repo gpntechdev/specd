@@ -2,7 +2,7 @@
 
 Name: **specd** (read "spec'd": spec-driven). Command prefix `/specd:`, config `specd.yml`, embedded folder `.specd/`.
 
-Status: v4, updated 2026-09-24. v2 reworked modes, folders, flow and init; v3 split init into commands and restructured `docs/`; v4 settles the remaining open questions (section 6). Progress: M0 and M1 done (section 5).
+Status: v4, updated 2026-09-24. v2 reworked modes, folders, flow and init; v3 split init into commands and restructured `docs/`; v4 settles the remaining open questions (section 6). Progress: M0 and M1 done, M2 built and awaiting its real-feature run (section 5). Git model amended by DECISIONS 2026-09-24: branch at `start`, commits per step.
 
 ## 1. Goal and non-goals
 
@@ -241,7 +241,7 @@ Each milestone ends in something you use on a real task; findings go to `DECISIO
 |---|---|---|---|---|
 | M0 | Foundations | Repo scaffold, plugin manifest, `principles` skill, `specd.yml` schema, path resolution, no-attribution settings, `AUTHORING.md`, validator | Plugin installs locally; principles skill triggers on a coding request | done 2026-09-22 |
 | M1 | Init + onboard (embedded) | `init` (detection, `specd.yml`, CLAUDE.md, Context7), `onboard` with knowledge checklist, per-section state and resume, brownfield scans + gap interview, greenfield interviews + `scaffold` | Onboard on one real brownfield repo gives docs you'd sign off without context overflow; greenfield init + onboard + scaffold yields a project that builds and tests | done 2026-09-24; `config` skill added (see DECISIONS) |
-| M2 | Full flow | start (intake local/paste + triage), specify, design, tasks (+ test plan), implement, review (base), verify, deliver, close (`distill`/`clean`/`keep`), `status` | One real feature shipped as a draft PR; resume after `/clear` works. **MVP** | |
+| M2 | Full flow | start (intake local/paste + triage), specify, design, tasks (+ test plan), implement, review (base), verify, deliver, close (`distill`/`clean`/`keep`), `status` | One real feature shipped as a draft PR; resume after `/clear` works. **MVP** | built 2026-09-24; awaiting the real-feature run (see DECISIONS) |
 | M3 | Light flows + critic | trivial, quick, `fix`, escalation, `critic` at gates, `critique` on demand | A week of mixed tasks without wanting to bypass the flow | |
 | M4 | Wrapper + parallel | Wrapper init, two-repo commits, worktrees per feature | Two features in parallel on a client-style repo with zero files added to it | |
 | M5 | Sources | `url` adapter, first MCP adapter, snapshot + refresh | A ticket becomes an approved spec without copy-paste | |

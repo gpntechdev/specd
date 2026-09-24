@@ -14,7 +14,7 @@ description: >
 
 Materialises the skeleton that the architecture section planned, as a quick-tier feature
 named `scaffold` so it gets a task gate and a delivery gate like any other work. The build
-runs in the main thread because the skeleton is small; the reviewer pass arrives with M2.
+runs in the main thread because the skeleton is small and gets no reviewer pass.
 
 ## Gate
 
@@ -68,10 +68,10 @@ A `state.yml` with another `step` means resume from that step.
    `<docs_root>/project.md` with the real commands and tree. Set `step: closed`.
 7. **Commit.** `chore: scaffold project skeleton` in `<code_root>`, covering the skeleton, the
    spec folder and the docs change (one repo in embedded mode), no attribution.
-8. **Handoff** per [`../_shared/handoff.md`](../_shared/handoff.md). `Next`: "start a feature
-   with `/specd:start` once it lands"; mention `/specd:toolsmith` as the later step for project
-   skills and MCPs. Note that `<spec_root>/scaffold/` is a closed quick feature with
-   `retention: clean`; `close` or `spec-clean` remove it like any other.
+8. **Handoff** per [`../_shared/handoff.md`](../_shared/handoff.md). `Next`: `/specd:start <feature>`;
+   mention `/specd:toolsmith` as the later step for project skills and MCPs. Note that
+   `<spec_root>/scaffold/` is a closed quick feature with `retention: clean`;
+   `/specd:close scaffold` removes it.
 
 ## Anti-patterns
 

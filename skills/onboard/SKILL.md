@@ -33,7 +33,7 @@ sections from an interview. Either way the main thread holds only summaries and 
 | architecture | `./templates/architecture-overview.md`, `architecture-area.md` | `<docs_root>/architecture/overview.md`, `<area>.md` |
 | conventions | `./templates/conventions.md` | `<docs_root>/conventions.md` |
 | data-models | `./templates/data-models-README.md`, `data-model.md` | `<docs_root>/data-models/README.md`, `<domain>.md` |
-| decisions | `./templates/decisions-README.md`, `decision.md` | `<docs_root>/decisions/README.md`, `NNNN-<title>.md` |
+| decisions | `./templates/decisions-README.md`, `../_shared/templates/decision.md` | `<docs_root>/decisions/README.md`, `NNNN-<title>.md` |
 
 Plus `<workspace_root>/sources/<slug>.md` for pasted or fetched pages, and one commit per
 signed-off section.
@@ -70,7 +70,7 @@ signed-off section.
    [`../_shared/no-attribution.md`](../_shared/no-attribution.md)).
 7. **Handoff** per [`../_shared/handoff.md`](../_shared/handoff.md). `Next`: the next unfinished
    section as `/specd:onboard`, or when all are signed off, `/specd:scaffold` in greenfield;
-   in brownfield, "start a feature with `/specd:start` once it lands". Mention that
+   in brownfield, `/specd:start <feature>`. Mention that
    `/specd:toolsmith` (project skills, MCP recommendations) comes later.
 
 Each run covers one section, then stops. The user runs `/clear` and the command again; step 2

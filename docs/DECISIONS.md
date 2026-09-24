@@ -298,3 +298,15 @@ Decision: `skills/_shared/templates/decision.md` is the one template, linked by 
 `close` writes `<docs_root>/features/<feature>.md` and the doc deltas; user-facing docs
 beyond that are a later milestone.
 Consequences: `onboard` and `close` cannot drift on the decision format.
+
+## 2026-09-24 M2: the real-feature run is the user's; M2 closes on their feedback
+
+Context: PLAN 5 makes M2 done when one real feature ships as a draft PR and resumes after
+`/clear`. specd's own skills are not loaded in the session that builds them, and the gates
+are the user's to answer.
+Decision: the milestone is marked built, not done. The user runs the flow on a real feature
+in a repo of their choice with `claude --plugin-dir`, and their findings land here before
+M3 starts. The plugin's own verification is script tests and a headless smoke run of
+`start`, `status` and `specify` in a scratch repo.
+Consequences: PLAN 5 row M2 says "built"; the "done" mark and any protocol fixes follow the
+run.

@@ -18,5 +18,6 @@ Read on demand: `{{docs_root}}/architecture/` (overview + one file per area),
 Commits follow Conventional Commits and carry no AI attribution.
 
 Commands: `/specd:onboard [section]` fills the docs, `/specd:scaffold` builds a greenfield
-skeleton, `/specd:config` changes a setting.
+skeleton, `/specd:start <feature>` opens a feature, `/specd:status` shows where each feature
+stands and what to run next, `/specd:config` changes a setting.
 <!-- specd:end -->

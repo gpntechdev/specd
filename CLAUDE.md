@@ -14,7 +14,8 @@ skills/<name>/    SKILL.md (spine) + references/ + templates/
 skills/_shared/   blocks referenced by many skills: handoff, gate protocol, principles
 agents/           subagent definitions
 hooks/            gate enforcement, secrets guardrail
-scripts/          deterministic helpers: validate, resolve-paths, detect-*, config-set, init-workspace
+scripts/          deterministic helpers: validate, resolve-paths, detect-*, config-set,
+                  init-workspace, state, run-checks
 docs/             PLAN.md, DECISIONS.md, AUTHORING.md
 ```
 
