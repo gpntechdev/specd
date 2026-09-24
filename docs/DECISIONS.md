@@ -235,3 +235,11 @@ copies. For local files and pastes the main thread writes the brief: a paste is 
 context, and a file the user named is theirs. The isolating agent arrives with URL and MCP
 sources in M5.
 Consequences: one set of redaction rules; M5 adds the agent without touching the brief format.
+
+## 2026-09-24 M2: critic hook points are marked comments in the spine
+
+Context: the critic agent is M3, but `specify` and `design` must already have its place.
+Decision: each spine carries one protocol step marked `<!-- specd:critic-hook: M3 -->` that
+states the M3 behaviour and, until then, prints `critic: not available until M3`. M3 replaces
+the marker line, nothing else moves.
+Consequences: the user sees where the critic will run; the gate summary is unchanged.
