@@ -20,4 +20,5 @@ Captured: {{date}}
 
 ## Your words
 
-<!-- The user's own sentence(s), verbatim. -->
+<!-- The user's own sentence(s), verbatim; "none: only a file was given" when there were none.
+     Never the command line. -->
