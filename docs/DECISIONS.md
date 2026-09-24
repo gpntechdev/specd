@@ -266,3 +266,35 @@ approval `implement` continues in the same context with the next task; the imple
 summaries are small, so the context grows slowly. Every stop is resumable from disk.
 Consequences: check output never exceeds a bounded tail; a user who wants a fresh context
 rejects the gate (tasks stay `done`) and re-runs the command after `/clear`.
+
+## 2026-09-24 M2: the reviewer reads a diff file; fixes become tasks; three rounds at most
+
+Context: the `reviewer` is read-only (no Bash, M1 validator rule), yet it must see what
+changed, including removed lines. Findings the user wants fixed must reach `implement`.
+Decision: `review` writes `git diff <default>...HEAD` to `<spec_root>/<feature>/review.diff`,
+the agent reads it, and the file is deleted before the commit. Each finding the user marks
+`fix` becomes a task in a `Review fixes (round n)` phase of `tasks.md` with a new id and a
+`commit:` line; `step` goes back to `implement`. A `missing` AC cannot be accepted. After
+three rounds `review` refuses and the user decides by hand.
+Consequences: fixes get the same gate, commit and evidence path as any task; the diff is
+never committed; the validator keeps `reviewer` read-only.
+
+## 2026-09-24 M2: verify fills the matrix in `tasks.md`; deliver degrades without a forge CLI
+
+Context: PLAN 3.3 says `verify` fills the evidence column and lists no `verify.md`; the PR
+step depends on `gh` or `glab`, which a machine may lack.
+Decision: evidence lives in the coverage matrix of `tasks.md` (a passing named test, a
+green check, or a dated manual note the user gave). `deliver` pushes and, when the host CLI
+is missing or `git.pr_host` is `none`, prints the exact command and the compare URL and
+stops at `push`; the PR URL, when obtained, is written to `state.yml` as `pr`. `close`
+pushes its commit when authority ≥ `push`, so the PR carries the distilled docs.
+Consequences: no extra artifact; a manual PR is a documented degradation, not a failure.
+
+## 2026-09-24 M2: decision template moves to `_shared`; no `docs` step in M2
+
+Context: `close` writes decision files with the same template `onboard` uses; the brief
+listed no `doc-writer` or `docs` step.
+Decision: `skills/_shared/templates/decision.md` is the one template, linked by both.
+`close` writes `<docs_root>/features/<feature>.md` and the doc deltas; user-facing docs
+beyond that are a later milestone.
+Consequences: `onboard` and `close` cannot drift on the decision format.
