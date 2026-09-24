@@ -255,3 +255,14 @@ pointers) of at most 40 lines. The main thread selects the sections from a signa
 selection. The tier does not change the selection in this milestone.
 Consequences: the draft never passes through the conversation; the validator keeps
 `architect` out of the read-only set. A second writable path is a new decision.
+
+## 2026-09-24 M2: `run-checks` runs the checks; implement continues after a G4 approval
+
+Context: `implement`, `verify` and `deliver` all run the project checks and must not fill
+the context with output. A G4 stop could end the run or let it continue.
+Decision: `scripts/run-checks` calls `detect-commands`, runs each detected command in the
+repo root and prints JSON with the exit code and the last 40 lines per check. After a G4
+approval `implement` continues in the same context with the next task; the implementer's
+summaries are small, so the context grows slowly. Every stop is resumable from disk.
+Consequences: check output never exceeds a bounded tail; a user who wants a fresh context
+rejects the gate (tasks stay `done`) and re-runs the command after `/clear`.

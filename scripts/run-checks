@@ -1,0 +1,74 @@
+#!/usr/bin/env python3
+"""Run the project's detected checks with bounded output, printed as JSON.
+
+Usage: run-checks [--from DIR] [--only test,lint,...] [--tail N]
+
+Asks detect-commands (next to this script) for the commands, runs each non-empty one with
+`sh -c` in the repo root in the order test, typecheck, lint, format, build, and reports the
+exit code and the last N lines of combined output (default 40). --only restricts the set.
+Never invents a command: a check without a detected command is reported as skipped.
+Exit 1 when any check that ran failed, 0 otherwise. Stdlib only.
+"""
+import json
+import os
+import subprocess
+import sys
+
+HERE = os.path.dirname(os.path.abspath(__file__))
+ORDER = ["test", "typecheck", "lint", "format", "build"]
+
+
+def opt(argv, flag, default=None):
+    if flag in argv:
+        i = argv.index(flag)
+        if i + 1 >= len(argv):
+            print("specd: %s needs a value" % flag, file=sys.stderr)
+            sys.exit(2)
+        return argv[i + 1]
+    return default
+
+
+def main(argv):
+    if "--help" in argv or "-h" in argv:
+        print(__doc__.strip())
+        return 0
+    start = os.path.abspath(opt(argv, "--from", "."))
+    only = opt(argv, "--only")
+    wanted = [c for c in only.split(",") if c] if only else ORDER
+    try:
+        tail = int(opt(argv, "--tail", "40"))
+    except ValueError:
+        print("specd: --tail needs an integer", file=sys.stderr)
+        return 2
+    try:
+        r = subprocess.run([sys.executable, os.path.join(HERE, "detect-commands"), "--from", start],
+                           capture_output=True, text=True)
+        detected = json.loads(r.stdout)
+    except (OSError, ValueError) as e:
+        print("specd: detect-commands failed: %s" % e, file=sys.stderr)
+        return 1
+    root = detected.get("root", start)
+    commands = detected.get("commands", {})
+    checks, failed = {}, False
+    for name in ORDER:
+        if name not in wanted:
+            continue
+        command = (commands.get(name) or {}).get("value", "")
+        if not command:
+            checks[name] = {"command": "", "skipped": True}
+            continue
+        try:
+            p = subprocess.run(command, shell=True, cwd=root, capture_output=True, text=True)
+            output, code = (p.stdout or "") + (p.stderr or ""), p.returncode
+        except OSError as e:
+            output, code = str(e), 127
+        lines = output.splitlines()
+        checks[name] = {"command": command, "exit": code, "ok": code == 0,
+                        "output_tail": lines[-tail:] if tail > 0 else []}
+        failed = failed or code != 0
+    print(json.dumps({"root": root, "checks": checks, "ok": not failed}, indent=2))
+    return 1 if failed else 0
+
+
+if __name__ == "__main__":
+    sys.exit(main(sys.argv[1:]))
