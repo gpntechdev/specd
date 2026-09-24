@@ -53,16 +53,19 @@ the same command: the first `todo` task is where it continues.
 4. **Land.** Show the agent's four sections as they came back. `## Blocked` not "none":
    leave the task `todo`, end with the handoff naming the block. Otherwise run
    `git -C <code_root> status --short`; files not in `## Changed` or `## Deviations` are
-   shown and left unstaged. Stage the listed files, commit with the task's `commit:` line
-   (authority ≠ `none`; `commit: none` skips), then `state set tasks.T<n>=done`.
+   shown and left unstaged. `state set tasks.T<n>=done`, then stage the listed files plus
+   `state.yml` and commit with the task's `commit:` line (authority ≠ `none`; `commit: none`
+   skips the commit).
 5. **G4 stop** when `loop.md` says so: granularity `task`; `phase` and this task ends its
    phase; `end` and no `todo` remains; or `risk: high`. Pass G4 per `gates.md` (summary:
    tasks landed since the last stop, files, checks run, deviations). Approve: `state set
    gates.G4=now`, continue at step 2 in this same context. Reject: handoff, `Next` is this
    command. Otherwise continue at step 2 without asking.
 6. **Finish.** No `todo` left: run `"${CLAUDE_PLUGIN_ROOT}/scripts/run-checks" --from
-   <code_root>`. Red: one repair dispatch with the failing output, then re-run; still red:
-   handoff with the output, `step` stays `implement`. Green: `state set step=review`.
+   <code_root>`. Red: one repair dispatch with the failing output, commit its files as
+   `fix(<scope>): make <check> pass`, re-run; still red: handoff with the output, `step`
+   stays `implement`. Green: `state set step=review`. Whenever the run ends, a dirty
+   `state.yml` is committed alone as `spec(<feature>): implement`.
 7. **Handoff** per [`../_shared/handoff.md`](../_shared/handoff.md). `Review`: deviations the
    agents reported, tests marked as looking wrong. `Next: /specd:review <feature>`.
 

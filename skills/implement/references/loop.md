@@ -24,8 +24,11 @@ start of the run; a change via `/specd:config` applies at the next run.
 ## Commits
 
 - Message: the task's `commit:` line, verbatim. Files: the agent's `## Changed` plus the
-  files it named under `## Deviations`. Anything else `git status` shows stays unstaged and
-  is mentioned in the handoff.
+  files it named under `## Deviations`, plus `state.yml` with the task flipped to `done`.
+  Anything else `git status` shows stays unstaged and is mentioned in the handoff.
+- The end-of-run repair commits as `fix(<scope>): make <check> pass`, scope as in the
+  feature's tasks. G4 stamps and the final `step=review` ride in `spec(<feature>): implement`
+  when the run ends with `state.yml` dirty.
 - `git.authority: none`: no commit; the task still flips to `done` and the handoff says the
   tree holds uncommitted work.
 
