@@ -5,7 +5,9 @@ Usage: detect-repo [--from DIR]
 
 Reports: root, git facts (branches, remote host, ticket key convention), whether the
 project is greenfield or brownfield, languages by extension, manifests, project name and
-which docs already exist. Git facts degrade to empty values outside a repository.
+which docs already exist. A repo whose skeleton specd built (`.specd/spec/scaffold/state.yml`
+with `step: closed`) is brownfield whatever its file count; `scaffolded` says so.
+Git facts degrade to empty values outside a repository.
 Exit 1 when DIR cannot be read. Stdlib only.
 """
 import json
@@ -32,6 +34,7 @@ DOCS_DIRS = ["docs", "doc", "documentation", "adr", "adrs"]
 TICKET = re.compile(r"\b([A-Z][A-Z0-9]{1,9})-\d+\b")
 TICKET_STOPLIST = {"UTF", "SHA", "ISO", "RFC", "CVE", "HTTP", "MD5", "SHA1", "SHA256", "UTF8"}
 GREENFIELD_MAX_SOURCE_FILES = 5
+SCAFFOLD_STATE = os.path.join(".specd", "spec", "scaffold", "state.yml")
 
 
 def git(root, *args):
@@ -164,7 +167,10 @@ def main(argv):
     out = {"root": root}
     out.update(git_facts(root))
     source_files, languages = count_sources(root)
-    out["kind"] = "greenfield" if source_files < GREENFIELD_MAX_SOURCE_FILES else "brownfield"
+    scaffolded = bool(re.search(r"^step:\s*closed\b", read_text(os.path.join(root, SCAFFOLD_STATE)), re.M))
+    out["scaffolded"] = scaffolded
+    small = source_files < GREENFIELD_MAX_SOURCE_FILES
+    out["kind"] = "greenfield" if small and not scaffolded else "brownfield"
     out["source_files"] = source_files
     out["languages"] = languages
     manifests = [m for m in MANIFESTS if os.path.isfile(os.path.join(root, m))]
