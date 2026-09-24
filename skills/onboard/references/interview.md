@@ -11,7 +11,7 @@ concrete options when one exists; otherwise ask in prose, one topic at a time.
   from what is already known. Two rounds per section is the norm; three is the cap. Beyond
   that, write the draft with the gaps marked `TODO(onboard)` and move to sign-off.
 - When the user points at a source ("it is in the Confluence page", "here is the RFC"), take
-  it: snapshot it per [`sources.md`](./sources.md) and read that instead of asking further.
+  it: snapshot it per [`sources.md`](../../_shared/sources.md) and read that instead of asking further.
 - Record answers in the draft as you go, not at the end. The draft on disk is the state.
 - "I don't know" is an answer: write `unknown as of <date>` in the file and move on.
 

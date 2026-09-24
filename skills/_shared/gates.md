@@ -1,8 +1,20 @@
 # Gate protocol
 
-**Reference-only.** Not a skill. Read by every gated step (`specify` G1, `design` G2, `tasks` G3,
-`implement` G4, `deliver` and `scaffold` G5); written by nobody. Approval lives in the feature's
-`state.yml` (schema: [`state-yml.md`](./state-yml.md)), never only in the conversation.
+**Reference-only.** Not a skill. Read by every step of the feature flow; written by nobody.
+Approval lives in the feature's `state.yml` (schema: [`state-yml.md`](./state-yml.md)), never
+only in the conversation. Gated steps: `specify` G1, `design` G2, `tasks` G3, `implement` G4,
+`deliver` and `scaffold` G5.
+
+## Entering any step
+
+1. Run `"${CLAUDE_PLUGIN_ROOT}/scripts/state" check --file <state.yml> --step <name>` first.
+   On `ok: false`, refuse with one line built from its output: `<reason>; run <run_first>
+   first.` Then end with the handoff block. Never reason about the order yourself.
+2. `rerun: true` means `step` is already past this one: the user is revisiting an earlier
+   artifact. Say in one line that writing it clears every later gate (`G<n+1>`..`G5`), ask
+   whether to continue, and on yes clear those gates with `state set` as the artifact is
+   written. Tasks already `done` stay `done`; the user decides what to redo.
+3. A gate approved once stays approved until the earlier artifact changes.
 
 ## Passing a gate
 
@@ -11,23 +23,23 @@
 2. Ask one question with three options: **approve**, **edit** (the user says what to change),
    **reject** (stop here). Use the assistant's question tool when available, otherwise ask in
    prose and wait.
-3. On **approve**: write the current UTC time in ISO-8601 (`2026-09-22T14:03:00Z`) to
-   `gates.G<n>` in `state.yml`, update `updated`, then continue.
+3. On **approve**: `state set gates.G<n>=now step=<next step>`, remove the artifact's draft
+   marker, then commit the artifact when `git.authority` is not `none`, then continue.
 4. On **edit**: apply the change to the artifact on disk, then go back to step 1.
 5. On **reject**: leave `gates.G<n>` empty, set nothing else, and end with the handoff block
    (`Next` names this same command).
 
-## Entering a gated step
+## G4 granularity
 
-- Read `state.yml` first. If the gate the step depends on is empty, refuse with one line:
-  `G<n> not approved; run /specd:<previous command> first.` Then end with the handoff block.
-- A gate approved once stays approved. Re-running the earlier step and changing its artifact
-  clears the gate (the earlier step does that when it writes).
+`flow.gate_granularity` decides where `implement` stops for G4: `task` after every task,
+`phase` after the last task of each phase (default), `end` once when no task is left. A task
+marked `risk: high` in `tasks.md` stops regardless. G4 is re-stamped at every stop; a
+rejected stop leaves the finished tasks `done` and the run resumable.
 
 ## Rules
 
 - Chat approval alone is not approval. If the user says "looks good" in prose, still record it
   in `state.yml` before continuing.
-- Risky tasks (marked `risk: high` in `tasks.md`) stop at G4 regardless of
-  `flow.gate_granularity`.
 - Never approve a gate on the user's behalf, not even for a trivial artifact.
+- Gate summaries are the user's whole view of the artifact at that moment; make them earn the
+  approval, never pad them.

@@ -52,7 +52,7 @@ signed-off section.
    model from `models.cheap`. Greenfield: run the section's interview from
    [`./references/interview.md`](./references/interview.md); the architecture section may
    dispatch `researcher` at `models.judgment`. In both kinds, when the user pastes or names a
-   page, snapshot it per [`./references/sources.md`](./references/sources.md) and read the
+   page, snapshot it per [`../_shared/sources.md`](../_shared/sources.md) and read the
    snapshot.
 4. **Draft to disk first.** Copy the section's template(s) to their targets now, with the
    draft marker as line 1; fill from the gathered material; cite `path:line` and

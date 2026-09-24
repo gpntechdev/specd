@@ -13,7 +13,7 @@ Produced:
 - <path>            one line per file written or changed
 Review:
 - <what to look at>  one line each, most important first; never a restatement of the file
-State: <step> · gates approved: <G1, G2 …> or none
+State: <feature> · <step> · gates approved: <G1, G2 …> or none
 Next: /specd:<command> [args]   after `/clear`
 ```
 
@@ -23,7 +23,8 @@ Next: /specd:<command> [args]   after `/clear`
 - `Produced` lists paths only, named by root (`<docs_root>/project.md`), never contents.
 - `Review` tells the user where their judgement is needed: an assumption made, a gap left, a
   choice that could go another way. At most five lines.
-- `State` repeats what `state.yml` says when the step has one, or the step name otherwise.
+- `State` repeats what `state.yml` says (feature, `step`, approved gates) when the step has
+  one, or the step name otherwise.
 - `Next` is one exact command. When the flow forks (for example greenfield after `onboard`),
   give the default first and the alternative on a second line.
 - A step that stops early (gate rejected, refusal, bounded retry exhausted) still ends with

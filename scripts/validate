@@ -185,6 +185,13 @@ def check_scripts():
         check(read(path).startswith("#!"), "%s has a shebang" % r)
 
 
+def check_state_reference():
+    path = os.path.join(ROOT, "skills", "_shared", "state-yml.md")
+    if os.path.exists(path):
+        fences = re.findall(r"```yaml\n(.*?)```", read(path), re.S)
+        check(len(fences) == 1, "skills/_shared/state-yml.md has exactly one yaml fence", str(len(fences)))
+
+
 def check_claude_md():
     for r in ("CLAUDE.md", GENERATED_CLAUDE_MD):
         path = os.path.join(ROOT, r)
@@ -202,6 +209,7 @@ def main(argv):
     check_agents()
     check_hooks()
     check_scripts()
+    check_state_reference()
     check_claude_md()
     print("\n%d failure(s)" % len(failures) if failures else "\nall checks passed")
     return 1 if failures else 0

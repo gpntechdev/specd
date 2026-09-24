@@ -189,3 +189,49 @@ whatever the file count; the count stays the fallback for repos specd did not sc
 Consequences: every `/specd:config` reference resolves. Lowering the threshold was rejected
 because a tiny real repo would then read as greenfield; the state file is the signal specd
 itself wrote. A scaffold still in progress leaves the kind untouched.
+
+## 2026-09-24 M2: branch at start, commit per step; `git.authority` caps deliver
+
+Context: PLAN 3.3 gave `deliver` "branch, atomic commits, push, draft PR", which leaves every
+spec file and all code uncommitted until the last step; M1 already commits per step.
+Decision: `start` creates the feature branch; `specify`, `design` and `tasks` commit their
+artifact after the gate; `implement` commits per task with the message fixed at G3; `deliver`
+re-runs checks, passes G5, pushes and opens the draft PR. `git.authority` means: `none`, specd
+runs no git write command at all (no branch, no commit); `commit`, branch and local commits,
+deliver stops after G5; `push`, plus push; `draft_pr`, plus the PR.
+Consequences: resume after `/clear` never loses work and two features never share a tree.
+The PLAN 3.3 deliver row is read with this amendment.
+
+## 2026-09-24 M2: tiers are recorded, every feature runs the full flow
+
+Context: triage proposes trivial/quick/full, but the light flows and escalation are M3.
+Decision: `start` writes `tier` and `triage.proposed`; the tier sets the default retention
+and is shown by `status`; every step runs regardless of tier.
+Consequences: a quick feature costs a full flow until M3; the state is already in place for
+M3 to branch on.
+
+## 2026-09-24 M2: `scripts/state` owns state.yml; new keys; feature resolution; no gate hook
+
+Context: every step reads and patches `state.yml`, must know whether it may run, and must
+find its feature after `/clear` without an argument. PLAN 3.9 and the M0 entry expected a
+gate-enforcement hook.
+Decision: `scripts/state` (init, get, set, check, find, list) is the only writer; `set` may
+add `tasks.<id>` keys and takes `now` as a timestamp. New keys: `branch`, `pr`,
+`triage.proposed`, `triage.signals`, `review.round`, `review.open`. Resolution order in
+`state find`: argument, then the feature whose `branch` is the current git branch, then the
+only open feature, else ask. `state check` encodes the step order and gate prerequisites; a
+step may re-run an earlier artifact, which clears every later gate. No hook: a hook cannot
+know which feature is active without a "current feature" file, which parallel features (M4)
+would break. Amends the M0 entry a second time.
+Consequences: skills never reason about order or edit state by hand. Revisit the hook with
+worktrees in M4.
+
+## 2026-09-24 M2: sources rules move to `_shared`; the brief is written in the main thread
+
+Context: `start` snapshots files and pastes the same way `onboard` does; PLAN 3.3 says the
+brief is written by an agent that treats fetched text as data.
+Decision: `skills/_shared/sources.md` and `_shared/templates/source.md` replace the onboard
+copies. For local files and pastes the main thread writes the brief: a paste is already in
+context, and a file the user named is theirs. The isolating agent arrives with URL and MCP
+sources in M5.
+Consequences: one set of redaction rules; M5 adds the agent without touching the brief format.
