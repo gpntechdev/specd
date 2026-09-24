@@ -173,3 +173,19 @@ redaction counted; `docs/` links and condenses, never copies. Redaction is a doc
 `skills/onboard/references/sources.md` until M5 provides the util.
 Consequences: raw material is separated from curated knowledge and is never auto-loaded; M5's
 refresh util has a folder to own.
+
+## 2026-09-24 M1: config skill added; scaffolded repos are brownfield by state, not by count
+
+Context: a review of M1 found two gaps. `init`, the CLAUDE.md template and the handoffs sent
+users to `/specd:config`, which no milestone had built. And the entry above claiming that a
+scaffolded repo "correctly reads as brownfield" was false: a skeleton has two or three source
+files, under the `detect-repo` threshold of five, so onboard sections run after scaffold
+(conventions, data-models, decisions, which its gate does not require) would have run as
+interviews.
+Decision: `skills/config` exists as a thin wrapper over `config-set`: show, ask, patch, say
+when the value applies, no commit. `detect-repo` reports `scaffolded: true` when
+`.specd/spec/scaffold/state.yml` has `step: closed` and then reports `kind: brownfield`
+whatever the file count; the count stays the fallback for repos specd did not scaffold.
+Consequences: every `/specd:config` reference resolves. Lowering the threshold was rejected
+because a tiny real repo would then read as greenfield; the state file is the signal specd
+itself wrote. A scaffold still in progress leaves the kind untouched.

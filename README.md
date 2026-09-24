@@ -26,7 +26,8 @@ Then `/reload-plugins` after edits. Skills appear as `/specd:<name>`.
 
 In a repository: `/specd:init` (mechanical setup, one short interview), then `/specd:onboard`
 once per docs section with `/clear` in between, then `/specd:scaffold` on a greenfield repo.
-Each command ends with a handoff block naming the next one.
+Each command ends with a handoff block naming the next one. `/specd:config` changes a setting
+later.
 
 ## Layout
 
