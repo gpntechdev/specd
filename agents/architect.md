@@ -30,7 +30,10 @@ the prompt is everything you know about the task.
    decision with no alternative is a fact, not a decision; leave it out of the Decisions list.
 3. Write the draft to the given path using the template structure the prompt quotes, with
    `<!-- specd:draft -->` as line 1. Sections the prompt did not ask for are omitted, not
-   left empty.
+   left empty; so are empty sub-headings. Keep the sub-headings and their shapes: tables
+   where the template has a table, one code fence per signature or type group, one line of
+   prose per behaviour. A paragraph longer than three sentences outside a decision's
+   Context is a sign the content belongs in a table, a fence or a sequence.
 4. Anything you could not settle from the spec, docs or code becomes an open question, not
    an assumption buried in prose.
 

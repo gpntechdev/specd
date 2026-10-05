@@ -339,3 +339,19 @@ the first file still carrying the draft marker.
 Consequences: `onboard` may take several runs for one section on a large repo; the section
 is complete when no file of it carries the marker. Batching is the same resume mechanism as
 before, so no new state.
+
+## 2026-10-05 M2 feedback: design.md Approach and contracts are structured by kind
+
+Context: a real `design.md` (markets feature, 180 lines) had a dense pointer paragraph for
+Approach and one bullet list mixing an HTTP call, a DTO, an error class, query keys,
+composables, component props and client defaults under API and contracts. Sequences and UX
+flows read well; the other two did not.
+Decision: Approach has fixed sub-headings: `### Summary` (three sentences, no pointers),
+`### Builds on` (pointer bullets), `### Changes by area` (table Area | Files | Change).
+API and contracts has one sub-heading per kind, present only when used: External calls
+(table), Types (code fence), Module interfaces (fenced signature plus one line of behaviour),
+Components (table), Changed contracts (before → after table). Data model gets `### Entities`
+(table) and `### Migration`. The cap rises from 200 to 250 lines; the architect keeps table,
+fence and one-line-prose shapes and omits empty sub-headings.
+Consequences: `tasks` reads the changes table and the contract kinds by name; a design that
+needs more prose puts it in a decision's Context or a sequence.
