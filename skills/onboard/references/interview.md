@@ -39,8 +39,10 @@ becomes a file in `decisions/` (use `../../_shared/templates/decision.md`); refe
 
 Conventions: offer the stack's mainstream defaults (formatter, linter, test layout, commit
 convention from `specd.yml`) as prefilled answers; the user edits. Data models: ask D1; if yes,
-one round on domains and entities, one file per domain. Decisions: usually already written
-during architecture; the section confirms the index and adds anything the user names.
+one round on domains and entities, one file per domain with key fields and defaults, since
+no code exists to point at; once it does, `onboard data-models` refreshes the files to
+pointers. Decisions: usually already written during architecture; the section confirms the
+index and adds anything the user names.
 
 ## Brownfield: the gap interview
 

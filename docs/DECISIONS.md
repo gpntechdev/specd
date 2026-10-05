@@ -322,3 +322,20 @@ would want to know why. The rest become one line each under Notes in
 `<docs_root>/features/<feature>.md`.
 Consequences: `decisions/` stays small; the design keeps listing every weighed alternative
 because tasks and review use them.
+
+## 2026-10-05 M2 feedback: brownfield data-model files hold pointers; large sections run in batches
+
+Context: on a greenfield test project `onboard data-models` wrote one file per domain with
+fields and defaults, which is right when no code exists but would turn a large brownfield
+repo into a schema dump, and a single explorer pass cannot map thirty domains in 80 lines.
+Architecture areas have the same shape.
+Decision: brownfield domain files list entities one line each with a `path:line` pointer and
+record only relationships and invariants the code does not state; greenfield files keep
+fields until the code exists and a refresh replaces them. Domain and area files are capped at
+60 lines; past fifteen entities a file names the aggregate roots and points to the folder.
+Architecture and data-models run a map pass first; more than five items means the run
+writes the index plus draft stubs and later runs fill at most five stubs each, resuming from
+the first file still carrying the draft marker.
+Consequences: `onboard` may take several runs for one section on a large repo; the section
+is complete when no file of it carries the marker. Batching is the same resume mechanism as
+before, so no new state.

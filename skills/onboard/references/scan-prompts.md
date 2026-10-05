@@ -25,6 +25,20 @@ Read globs: `README*`, `CLAUDE.md`, `AGENTS.md`, `docs/**/*.md`, root manifests
 directory levels (names only). Add to the header: "Commands are already detected; confirm them
 only if the docs contradict the manifests." Pass the `detect-commands` output as a data block.
 
+## Map pass and item pass
+
+Architecture (areas) and data-models (domains) are an index plus one file per item. On a
+repo with more than five items a single run cannot cover them, so the section runs in
+passes: a **map pass** that lists the items, then **item passes** that fill at most five
+files per run. Five items or fewer: one run does both.
+
+Map pass header addition: "List every <area|domain> once: name, folder, and a count of
+<entry points|entities>. No detail beyond one clause per item. Stop at the list."
+
+Item pass: one explorer run per item with the section's read globs narrowed to that item's
+folder and the item template's headings as the questions. Header addition: "Answer only for
+<item> at <folder>. Give `path:line` pointers, never field lists or code."
+
 ## architecture
 
 Read globs: the source roots (from `project.md` layout, else `src/**`, `app/**`, `lib/**`,
@@ -46,7 +60,10 @@ from rules that are only followed by habit; give one `path:line` example for eac
 
 Read globs: ORM models and schema files (`**/models/**`, `**/entities/**`, `**/schema*`,
 `prisma/**`, `**/migrations/**`, `*.sql`, `**/*.proto`, `**/db/**`). Add to the header: "If
-none of these exist, answer D1 with 'no persisted data models' and stop after the checklist."
+none of these exist, answer D1 with 'no persisted data models' and stop after the checklist.
+Group entities by domain (schema, module or folder). Report entity names with `path:line`,
+never their fields. A domain past fifteen entities: name the aggregate roots and say 'and N
+more in <folder>'."
 
 ## decisions
 

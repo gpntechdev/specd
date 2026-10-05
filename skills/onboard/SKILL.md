@@ -45,11 +45,16 @@ signed-off section.
    override it in the same turn.
 2. **Pick the section.** With an argument, that section; its existing files are inputs and are
    re-drafted. Without one, the first in the order project, architecture, conventions,
-   data-models, decisions whose index file (the first target in the table) is missing or whose
-   first line is `<!-- specd:draft -->`. None left: say "onboard complete" and go to step 7.
+   data-models, decisions whose index file (the first target in the table) is missing, or
+   any of whose files still starts with `<!-- specd:draft -->`. None left: say "onboard
+   complete" and go to step 7.
 3. **Gather.** Brownfield: dispatch one `explorer` run with the section's prompt from
    [`./references/scan-prompts.md`](./references/scan-prompts.md), absolute paths filled in,
-   model from `models.cheap`. Greenfield: run the section's interview from
+   model from `models.cheap`. For architecture and data-models the first run is a map pass
+   (areas or domains with folder and count, no detail); more than five items means this run
+   writes the index plus one draft stub per item and stops after the index is signed off;
+   every later run fills up to five stubs, one explorer item pass each, and signs those off.
+   Five or fewer: index and items in one run. Greenfield: run the section's interview from
    [`./references/interview.md`](./references/interview.md); the architecture section may
    dispatch `researcher` at `models.judgment`. In both kinds, when the user pastes or names a
    page, snapshot it per [`../_shared/sources.md`](../_shared/sources.md) and read the
@@ -65,7 +70,8 @@ signed-off section.
 6. **Sign-off.** Show the target paths and a summary of at most ten lines: what was found,
    what was assumed, what is still TODO. Ask approve / edit / reject. Edit: apply and re-show.
    Reject: leave the draft on disk with its marker, go to step 7. Approve: remove the marker
-   line from every file of the section, then commit `docs: onboard <section>` in the repo
+   line from every file drafted in this run (stubs not filled keep theirs), then commit
+   `docs: onboard <section>` (`docs: onboard <section> <items>` for a batch) in the repo
    that contains `docs_root`, no attribution (see
    [`../_shared/no-attribution.md`](../_shared/no-attribution.md)).
 7. **Handoff** per [`../_shared/handoff.md`](../_shared/handoff.md). `Next`: the next unfinished
@@ -73,8 +79,8 @@ signed-off section.
    in brownfield, `/specd:start <feature>`. Mention that
    `/specd:toolsmith` (project skills, MCP recommendations) comes later.
 
-Each run covers one section, then stops. The user runs `/clear` and the command again; step 2
-finds where to continue.
+Each run covers one section, or one batch of a large section, then stops. The user runs
+`/clear` and the command again; step 2 finds where to continue from the draft markers.
 
 ## Anti-patterns
 
@@ -84,3 +90,5 @@ finds where to continue.
 - Overwriting a doc the team wrote. Link it; put specd's view next to it.
 - Answering a checklist item from general knowledge of the stack instead of this repo.
 - Padding `project.md` or `conventions.md` past their caps; they load every session.
+- Copying fields or schemas into a brownfield data-model file; the code is the schema, the
+  file holds pointers, relationships and invariants.
