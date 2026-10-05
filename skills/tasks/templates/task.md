@@ -1,7 +1,7 @@
-<!-- Written by /specd:tasks (split layout) to <spec_root>/<feature>/tasks/T<n>.md; read by
-     implement for this task only, and by review when the task fixes a finding. Same fields
-     as an inline task block; the index line in tasks.md must agree with goal, risk and
-     covers. At most 60 lines. -->
+<!-- Written by /specd:tasks to <spec_root>/<feature>/tasks/T<n>.md for a task whose body
+     would pass ~100 lines in tasks.md; read by implement for this task only, and by review
+     when the task fixes a finding. Same fields as an inline task block; the index line in
+     tasks.md must agree with goal, risk and covers. -->
 # T{{n}}: {{goal in one line}}
 
 Phase: {{phase name}} · Risk: {{low|high}} · Covers: {{AC ids}} · Depends on: {{ids or none}}

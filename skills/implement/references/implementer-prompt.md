@@ -5,7 +5,7 @@ and pass it as the agent's model). Every path absolute. Nothing beyond what is l
 
 ```
 Feature: <feature>. Task <id> of <n>. TDD: on|off.
-Task (verbatim from tasks.md, or from tasks/T<id>.md in the split layout):
+Task (verbatim from tasks.md, or from tasks/T<id>.md when its entry is an index line):
 <the task block or file body: goal, files, done-when, depends-on, risk, commit, covers, tests>
 Acceptance criteria this task covers (from spec.md, verbatim):
 <AC lines>

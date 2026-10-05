@@ -11,18 +11,18 @@
 - Between two and twelve tasks is the norm. One task means the tier should have been
   trivial; more than twelve means the spec is two features.
 
-## Layout: inline or split
+## Heavy tasks
 
-- Inline: every task is a block in `tasks.md`. Right for a handful of tasks without tests
-  blocks; the file stays readable in one screen.
-- Split: `tasks.md` holds the header, each phase with one index line per task
-  (`- T<n> · <goal> · risk <low|high> · covers <ACs> · tasks/T<n>.md`) and the matrix; each
-  task body is `tasks/T<n>.md` from `templates/task.md`, at most 60 lines. Use it when the
-  inline file would pass 100 lines; with tests blocks that is about six tasks.
-- Decide before writing, never convert mid-way; the `Layout:` field in the header says
-  which. Readers test for the `tasks/` folder: present means split.
-- Review-fix tasks follow the layout in force: an index line plus a file in split, a block
-  inline.
+- A task block is inline in `tasks.md` by default, whatever the file's total length;
+  `implement` reads the file once per run and dispatches one block at a time.
+- A task whose body would pass about 100 lines (a long tests block, many files, a
+  multi-step done-when) costs that much on every run that reads the file. First ask whether
+  it is really one unit: the sizing rules above usually say it is two tasks. When it is one
+  unit, write its body to `tasks/T<n>.md` from `templates/task.md` and keep only the index
+  line in `tasks.md`: `- T<n> · <goal> · risk <low|high> · covers <ACs> · tasks/T<n>.md`.
+- Readers recognise an externalised task by its entry being an index line ending in
+  `tasks/T<n>.md`, never by the folder existing; light and heavy tasks sit side by side.
+- Review-fix tasks follow the same rule: inline unless the fix is heavy.
 
 ## done-when forms
 

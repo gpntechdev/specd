@@ -2,10 +2,10 @@
 
 ## Reading a task
 
-`tasks.md` is the index: phases, one block or one index line per task, the matrix. When the
-`tasks/` folder exists the layout is split and the body of task `T<n>` is `tasks/T<n>.md`;
-read that file, not the index line, before dispatching. Phase boundaries for G4 come from
-the index in both layouts.
+`tasks.md` holds the phases, one block per task, and the matrix. A heavy task is an index
+line ending in `tasks/T<n>.md` instead of a block; read that file for its body before
+dispatching, and nothing else from the folder. Phase boundaries for G4 come from `tasks.md`
+either way.
 
 ## Picking the next task
 

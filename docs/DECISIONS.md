@@ -369,3 +369,16 @@ fix tasks in the layout in force. The matrix, `state.yml` ids and the G4 phase b
 come from `tasks.md` in both layouts.
 Consequences: a large feature's task list stays scannable; the implementer still receives
 one task verbatim. Converting between layouts after G3 is not supported.
+
+## 2026-10-05 M2 feedback: the split unit is the task, not the file
+
+Context: the entry above split `tasks.md` whenever the whole file would pass 100 lines. The
+user's concern was token cost per task, not file length: `implement` reads `tasks.md` on
+every run, so one heavy task body is paid for on every task, whereas a dedicated file is
+read once, by the run that needs it. A long file of light tasks is fine.
+Decision: a task whose body would pass about 100 lines is first questioned (is it one unit?)
+and, when it is, externalised to `tasks/T<n>.md` with a single index line in `tasks.md`.
+Light tasks stay inline beside it. No layout field; readers recognise an externalised task
+by its index line, not by the folder. Supersedes the entry above.
+Consequences: `tasks.md` mixes blocks and index lines; `implement` opens a task file only for
+the task in hand.
