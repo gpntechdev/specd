@@ -24,7 +24,8 @@ the same command: the first `todo` task is where it continues.
 ## Inputs
 
 - `resolve-paths`, `detect-repo`, `state find`, `state check`, `detect-commands`.
-- `<spec_root>/<feature>/tasks.md`, `state.yml`, `spec.md`, `design.md` (when present).
+- `<spec_root>/<feature>/tasks.md`, `state.yml`, `spec.md`, `design.md` (when present);
+  `tasks/T<n>.md` for the task in hand when the `tasks/` folder exists (split layout).
 - `<docs_root>/conventions.md`, [`../_shared/principles.md`](../_shared/principles.md) (path
   passed to the agent, read by it).
 - `<workspace_root>/specd.yml`: `models.execution`, `flow.tdd`, `flow.gate_granularity`,
@@ -47,7 +48,8 @@ the same command: the first `todo` task is where it continues.
 2. **Pick** the first `todo` task whose `depends-on` are all `done` (`loop.md`). None left
    with open dependencies: stop and say which task blocks.
 3. **Dispatch** `implementer` at `models.execution` with `implementer-prompt.md` filled: the
-   task block verbatim, the ACs it covers quoted from `spec.md`, the design headings that
+   task verbatim (its block from `tasks.md`, or the body of `tasks/T<n>.md` in the split
+   layout), the ACs it covers quoted from `spec.md`, the design headings that
    apply, absolute paths of `conventions.md` and `principles.md`, the check commands, the
    TDD flag. One task per dispatch, always.
 4. **Land.** Show the agent's four sections as they came back. `## Blocked` not "none":

@@ -11,6 +11,19 @@
 - Between two and twelve tasks is the norm. One task means the tier should have been
   trivial; more than twelve means the spec is two features.
 
+## Layout: inline or split
+
+- Inline: every task is a block in `tasks.md`. Right for a handful of tasks without tests
+  blocks; the file stays readable in one screen.
+- Split: `tasks.md` holds the header, each phase with one index line per task
+  (`- T<n> · <goal> · risk <low|high> · covers <ACs> · tasks/T<n>.md`) and the matrix; each
+  task body is `tasks/T<n>.md` from `templates/task.md`, at most 60 lines. Use it when the
+  inline file would pass 100 lines; with tests blocks that is about six tasks.
+- Decide before writing, never convert mid-way; the `Layout:` field in the header says
+  which. Readers test for the `tasks/` folder: present means split.
+- Review-fix tasks follow the layout in force: an index line plus a file in split, a block
+  inline.
+
 ## done-when forms
 
 - A command: `<test command> -k <name> passes`, `<lint command> exits 0`, `curl … returns 201`.

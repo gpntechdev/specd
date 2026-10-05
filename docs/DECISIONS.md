@@ -355,3 +355,17 @@ Components (table), Changed contracts (before → after table). Data model gets 
 fence and one-line-prose shapes and omits empty sub-headings.
 Consequences: `tasks` reads the changes table and the contract kinds by name; a design that
 needs more prose puts it in a decision's Context or a sequence.
+
+## 2026-10-05 M2 feedback: tasks.md splits into one file per task past 100 lines
+
+Context: a thirteen-task feature produced a 242-line `tasks.md`; the tests blocks make each
+task fifteen lines, so the file stops being readable at about six tasks.
+Decision: two layouts, chosen by `tasks` before writing and named in the header. Inline
+keeps task blocks in `tasks.md`. Split, used when the inline file would pass 100 lines,
+keeps `tasks.md` as the index (phases with one index line per task, and the matrix) and
+puts each task body in `tasks/T<n>.md` from a task template, at most 60 lines. Readers test
+for the `tasks/` folder; `implement` reads the task file before dispatching, `review` adds
+fix tasks in the layout in force. The matrix, `state.yml` ids and the G4 phase boundaries
+come from `tasks.md` in both layouts.
+Consequences: a large feature's task list stays scannable; the implementer still receives
+one task verbatim. Converting between layouts after G3 is not supported.

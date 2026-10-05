@@ -31,8 +31,8 @@ clears G3..G5 on write; tasks already `done` stay `done`.
 
 ## Outputs
 
-- `<spec_root>/<feature>/tasks.md`; `tasks.T<n>` keys, `gates.G3`, `step: implement` in
-  `state.yml`.
+- `<spec_root>/<feature>/tasks.md`, plus `tasks/T<n>.md` per task in the split layout (see
+  `breakdown.md`); `tasks.T<n>` keys, `gates.G3`, `step: implement` in `state.yml`.
 - One commit `spec(<feature>): tasks` (authority ≠ `none`).
 
 ## Protocol
@@ -43,7 +43,11 @@ clears G3..G5 on write; tasks already `done` stay `done`.
    per `breakdown.md`: phases in build order, tasks `T1..` in dependency order, each with
    `goal`, `files`, `done-when`, `depends-on`, `risk`, `commit`, `covers`, and with
    `flow.tdd: true` a `tests:` block naming the test cases derived from the ACs it covers.
-   The last phase is always `Verify` with one task: every project check green.
+   The last phase is always `Verify` with one task: every project check green. **Layout:**
+   when the inline file would pass 100 lines (in practice more than about six tasks, or
+   tasks with tests blocks), switch to the split layout: `tasks.md` keeps the header, the
+   phases with one index line per task and the matrix; each task body goes to
+   `tasks/T<n>.md` from `./templates/task.md`. Never mix the two layouts.
 3. **Matrix.** Fill the coverage matrix: one row per AC, the task(s) and test(s) that cover
    it, evidence empty. An AC with no task gets one now, or goes back to `spec.md` as an open
    question with a line in the handoff saying so. A task covering no AC is either a
@@ -64,4 +68,5 @@ clears G3..G5 on write; tasks already `done` stay `done`.
 - Tasks that mirror the design's headings instead of the build order.
 - A "misc" or "cleanup" task; every task traces to an AC or to a task that does.
 - Renumbering after G3; review appends new ids, it never reuses them.
+- A task body inline in `tasks.md` when the `tasks/` folder exists, or the other way round.
 - Writing test code here; the tests block names cases, `implement` writes them.

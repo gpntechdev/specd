@@ -56,7 +56,8 @@ fourth round is refused: the user decides to ship or stop by hand.
 5. **Resolve** each finding with the user, most severe first, at most four per question:
    **fix** (append a task to a `Review fixes (round n)` phase in `tasks.md` with the finding's
    fix as goal, `covers: F<n>` plus the AC when one is named, a `commit:` line, `risk` from
-   the finding; `state set tasks.T<k>=todo`), **accept** (one-line reason recorded), or
+   the finding, in the layout in force: a block inline, or an index line plus
+   `tasks/T<k>.md` when the `tasks/` folder exists; `state set tasks.T<k>=todo`), **accept** (one-line reason recorded), or
    **dispute** (recorded as accepted with the user's reason). A `missing` AC cannot be
    accepted; it is a fix or the spec changes (`/specd:specify`, which re-runs the flow).
 6. **Route.** `state set review.round=<n> review.open=<fix count>`. Fixes: `step=implement`,

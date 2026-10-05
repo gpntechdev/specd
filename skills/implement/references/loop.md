@@ -1,5 +1,12 @@
 # The implement loop
 
+## Reading a task
+
+`tasks.md` is the index: phases, one block or one index line per task, the matrix. When the
+`tasks/` folder exists the layout is split and the body of task `T<n>` is `tasks/T<n>.md`;
+read that file, not the index line, before dispatching. Phase boundaries for G4 come from
+the index in both layouts.
+
 ## Picking the next task
 
 - Candidates: tasks whose `state.yml` value is `todo`. Take the first, in id order, whose
