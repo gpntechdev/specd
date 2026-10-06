@@ -29,7 +29,7 @@ the same command: the first `todo` task is where it continues.
 - `<docs_root>/conventions.md`, [`../_shared/principles.md`](../_shared/principles.md) (path
   passed to the agent, read by it).
 - `<workspace_root>/specd.yml`: `models.execution`, `flow.tdd`, `flow.gate_granularity`,
-  `git.authority`.
+  `git.authority`, `layers.*` (files per task `layer`, relative to `code_root`).
 - [`../_shared/gates.md`](../_shared/gates.md), [`../_shared/state-yml.md`](../_shared/state-yml.md).
 - [`./references/implementer-prompt.md`](./references/implementer-prompt.md),
   [`./references/loop.md`](./references/loop.md).
@@ -50,8 +50,10 @@ the same command: the first `todo` task is where it continues.
 3. **Dispatch** `implementer` at `models.execution` with `implementer-prompt.md` filled: the
    task verbatim (its block from `tasks.md`, or the body of `tasks/T<n>.md` when its entry
    is an index line), the ACs it covers quoted from `spec.md`, the design headings that
-   apply, absolute paths of `conventions.md` and `principles.md`, the check commands, the
-   TDD flag. One task per dispatch, always.
+   apply, absolute paths of `conventions.md` and `principles.md`, then of the files under
+   `layers.<task.layer>` resolved against `code_root`, the check commands, the TDD flag. A
+   `layer` with no entry in `layers`, or a listed file that does not exist: dispatch without
+   it and name it in the handoff `Review`. One task per dispatch, always.
 4. **Land.** Show the agent's four sections as they came back. `## Blocked` not "none":
    leave the task `todo`, end with the handoff naming the block. Otherwise run
    `git -C <code_root> status --short`; files not in `## Changed` or `## Deviations` are
@@ -75,6 +77,7 @@ the same command: the first `todo` task is where it continues.
 
 - Writing or fixing code in the main thread "because it is a one-liner".
 - Two tasks in one dispatch, or a dispatch without the task's ACs quoted.
+- Pasting a layer skill's text into the prompt; the agent gets paths and reads them itself.
 - Committing files the agent did not list, or amending a task's commit message.
 - Skipping a G4 stop because the change looked small; the granularity is the user's setting.
 - Repairing past the bound: three attempts inside the agent, one more dispatch at the end.

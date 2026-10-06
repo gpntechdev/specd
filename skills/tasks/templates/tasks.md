@@ -6,8 +6,9 @@
      `- T<n> · <goal> · risk <low|high> · covers <ACs> · tasks/T<n>.md` here and its body
      lives in tasks/T<n>.md; light tasks stay inline next to it, and the file's own length
      does not matter. Fields per task: goal, files, done-when (a command or an
-     observable), depends-on, risk (low|high), commit (Conventional Commit message implement
-     uses verbatim), covers (AC ids), tests (TDD only: case names). The matrix has one row per
+     observable), depends-on, risk (low|high), layer (a key of specd.yml `layers`, or
+     omitted), commit (Conventional Commit message implement uses verbatim), covers (AC
+     ids), tests (TDD only: case names). The matrix has one row per
      AC; verify fills Evidence. state.yml mirrors the ids. Remove the first line on G3. -->
 # Tasks: {{feature}}
 
@@ -21,6 +22,7 @@ Spec: `spec.md` · Design: `design.md` · TDD: {{on|off}} · Gate granularity: {
   - done-when:
   - depends-on: none
   - risk: low
+  - layer: {{key of specd.yml layers, or drop the line}}
   - commit: {{type}}({{scope}}): {{summary}}
   - covers: AC1
   - tests:

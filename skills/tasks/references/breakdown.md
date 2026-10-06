@@ -38,6 +38,15 @@ auth, permissions, payments or secrets; changes a public contract other code dep
 removes code; or runs anything against an external system. High-risk tasks always stop for
 G4 (`gates.md`), whatever the granularity.
 
+## layer
+
+- `specd.yml` `layers` maps a layer name (`frontend`, `backend`, `infra`, `data`, whatever
+  the project uses) to the project skill files `implement` hands the implementer for tasks
+  of that layer. When the map is non-empty, every task that touches one of its layers names
+  it in `layer:`; a task that needs two layers is two tasks (the one-concern rule above).
+- Omit the line when the map is empty or the task touches no listed layer. Never invent a
+  name that is not a key of the map; the Verify task has no layer.
+
 ## commit
 
 One Conventional Commit message per task, fixed here so `implement` never invents one:

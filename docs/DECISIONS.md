@@ -382,3 +382,21 @@ Light tasks stay inline beside it. No layout field; readers recognise an externa
 by its index line, not by the folder. Supersedes the entry above.
 Consequences: `tasks.md` mixes blocks and index lines; `implement` opens a task file only for
 the task in hand.
+
+## 2026-10-06 M2 feedback: stack specialisation is per-layer knowledge, not per-layer agents
+
+Context: the user wanted a project-specific implementer (e.g. a `frontend-engineer` that
+`toolsmith` generates for a React repo) and asked whether `implementer` could call it.
+Claude Code subagents never have the `Agent` tool, so nested dispatch is impossible; and
+what differs between a frontend and a backend implementer is the conventions it reads, not
+the build-verify-report loop.
+Decision: a task carries an optional `layer` (a key of `specd.yml` `layers`); `layers.<name>`
+lists project skill files, relative to `code_root`; `implement` and `review` resolve the
+task's (or the feature's) layer files to absolute paths and put them in the agent's "read
+first" list after `conventions.md`. One layer per task; a task needing two is two tasks.
+`toolsmith` (M6) fills `layers` when it installs or generates a skill; until then by hand.
+Consequences: one `implementer`, one `reviewer`; the knowledge varies, the agent does not.
+`layers` keeps the two-level flat-YAML shape, so no parser or `config-set` change; like
+`skills.allowlist` it is a list key and is edited by hand. A per-layer agent with its own
+`tools:` (browser or database MCP) is the escalation path if a layer ever needs it, and
+would be routed from the same `layers` map; not built.

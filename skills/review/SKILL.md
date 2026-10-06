@@ -29,7 +29,7 @@ fourth round is refused: the user decides to ship or stop by hand.
   `review.md` (earlier rounds).
 - `<docs_root>/conventions.md`, [`../_shared/principles.md`](../_shared/principles.md) (path
   for the agent).
-- `<workspace_root>/specd.yml`: `models.judgment`, `git.authority`.
+- `<workspace_root>/specd.yml`: `models.judgment`, `git.authority`, `layers.*`.
 - [`../_shared/gates.md`](../_shared/gates.md), [`../_shared/state-yml.md`](../_shared/state-yml.md).
 - `./templates/review.md`, [`./references/reviewer-prompt.md`](./references/reviewer-prompt.md).
 
@@ -49,7 +49,9 @@ fourth round is refused: the user decides to ship or stop by hand.
    `<spec_root>/<feature>/review.diff`, excluding `<spec_root>` and `<docs_root>` paths;
    show `--stat` to the user. An empty diff: say so and stop (`Next: /specd:implement`).
 3. **Dispatch** `reviewer` at `models.judgment` with `reviewer-prompt.md` filled: absolute
-   paths, the round, the changed-file list, earlier findings marked accepted or disputed.
+   paths, the layer files for every `layer` the feature's tasks name (`layers.*`, resolved
+   against `code_root`, missing ones dropped), the round, the changed-file list, earlier
+   findings marked accepted or disputed.
 4. **Record.** Create `review.md` from `./templates/review.md` on round 1; append
    `## Round n` with the AC table, the findings and the verdict as they came back. Delete
    `review.diff`.

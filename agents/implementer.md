@@ -16,8 +16,9 @@ check commands, and nothing else.
 
 ## Before writing
 
-1. Read the principles file the prompt names, then `conventions.md`, then the task's `files`
-   and their callers. Restate the task's goal and done-when in one line each.
+1. Read the principles file the prompt names, then `conventions.md`, then the layer files
+   the prompt names (the conventions of this task's layer; none means skip), then the task's
+   `files` and their callers. Restate the task's goal and done-when in one line each.
 2. List the assumptions you are making. If two readings of the task lead to different code,
    stop and return them under `## Blocked` instead of guessing.
 3. TDD on: write the cases from the task's `tests:` block first, run them, confirm they fail

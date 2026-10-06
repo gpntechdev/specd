@@ -169,6 +169,8 @@ Agents exist only where an isolated context pays for itself: heavy reading, or i
 
 Agents: `explorer` (codebase scan, cheap, returns a map with file:line pointers), `researcher`, `architect`, `critic`, `implementer`, `reviewer`, specialist reviewers (`security`, `performance`, `accessibility`, `tests`), `doc-writer`, `skill-auditor`.
 
+Stack specialisation is knowledge, not agents: a task names a `layer` (`frontend`, `backend`, …), `specd.yml` `layers` maps each layer to project skill files, and `implement` and `review` pass those files to the one `implementer` / `reviewer` as "read first". Subagents cannot spawn subagents, so routing always happens in the main thread; a per-layer agent is added only when a layer needs tools the generic agent lacks (a browser or database MCP).
+
 Skills: `init`, `onboard`, `scaffold`, `toolsmith`, `config` (change a setting mid-flow, e.g. gate granularity or PR host), `start`, `specify`, `design`, `tasks`, `implement`, `review`, `verify`, `runtime-verify`, `deliver`, `close`, `fix`, `critique`, `status` (resume), `principles`, `skill-audit`, utils (`research`, `analyze`, `docs-clean`, `spec-clean`, `lessons-prune`).
 
 Model tiers are roles, not model names: `judgment`, `execution`, `cheap`, mapped in `specd.yml` (default opus/sonnet/haiku), overridable per role.
@@ -194,7 +196,7 @@ Each section ends with a summary you sign off.
 
 ### 3.6 Project-specific skills: toolsmith and skill-audit
 
-`toolsmith` is a command on the outside and agents on the inside: it takes the detected stack and, per need (e.g. "React testing conventions", "NestJS module layout"): has `researcher` search the allowlisted sources in `specd.yml` (official Anthropic skills, vendor-official repos, anything you add); fetches candidates into a quarantine folder that Claude Code does not load; runs `skill-audit`; shows you the report; installs only on approval, pinned to a commit hash in `skills.lock`. If nothing suitable passes, it generates a project skill from codebase conventions plus Context7 docs.
+`toolsmith` is a command on the outside and agents on the inside: it takes the detected stack and, per need (e.g. "React testing conventions", "NestJS module layout"): has `researcher` search the allowlisted sources in `specd.yml` (official Anthropic skills, vendor-official repos, anything you add); fetches candidates into a quarantine folder that Claude Code does not load; runs `skill-audit`; shows you the report; installs only on approval, pinned to a commit hash in `skills.lock`. If nothing suitable passes, it generates a project skill from codebase conventions plus Context7 docs. Each installed or generated skill is registered under the layer it serves in `specd.yml` `layers`, which is how it reaches the implementer (3.4).
 
 `skill-audit` is two-stage because an LLM auditor reading hostile text is itself an injection target. Stage one is a deterministic script: hidden/bidi Unicode, encoded blobs, URLs and network calls, `curl | sh` patterns, bundled scripts and hooks, over-broad `allowed-tools`, references to secrets or env files. Stage two is the `skill-auditor` agent with read-only tools and no network, treating content strictly as data and flagging instructions that override behaviour, exfiltrate, or exceed the skill's stated purpose. Nothing is executed during audit; it re-runs on updates.
 

@@ -4,7 +4,7 @@
      tasks.md must agree with goal, risk and covers. -->
 # T{{n}}: {{goal in one line}}
 
-Phase: {{phase name}} · Risk: {{low|high}} · Covers: {{AC ids}} · Depends on: {{ids or none}}
+Phase: {{phase name}} · Risk: {{low|high}} · Layer: {{key of specd.yml layers, or none}} · Covers: {{AC ids}} · Depends on: {{ids or none}}
 
 ## Goal
 

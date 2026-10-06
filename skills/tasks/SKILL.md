@@ -25,7 +25,8 @@ clears G3..G5 on write; tasks already `done` stay `done`.
 - `resolve-paths`, `detect-repo`, `state find`, `state check`.
 - `<spec_root>/<feature>/spec.md`, `design.md` (when present), `state.yml`.
 - `<docs_root>/conventions.md` (test layout, naming, commit scopes), `project.md` (commands).
-- `<workspace_root>/specd.yml`: `flow.tdd`, `flow.gate_granularity`, `git.authority`.
+- `<workspace_root>/specd.yml`: `flow.tdd`, `flow.gate_granularity`, `git.authority`,
+  `layers.*` (the `layer` vocabulary).
 - [`../_shared/gates.md`](../_shared/gates.md), [`../_shared/state-yml.md`](../_shared/state-yml.md).
 - `./templates/tasks.md`, [`./references/breakdown.md`](./references/breakdown.md).
 
@@ -41,8 +42,9 @@ clears G3..G5 on write; tasks already `done` stay `done`.
    `gates.md`. Set `step=tasks`.
 2. **Draft.** Copy `./templates/tasks.md` to `<spec_root>/<feature>/tasks.md` and fill it
    per `breakdown.md`: phases in build order, tasks `T1..` in dependency order, each with
-   `goal`, `files`, `done-when`, `depends-on`, `risk`, `commit`, `covers`, and with
-   `flow.tdd: true` a `tests:` block naming the test cases derived from the ACs it covers.
+   `goal`, `files`, `done-when`, `depends-on`, `risk`, `commit`, `covers`, a `layer` when
+   `specd.yml` `layers` names one it touches, and with `flow.tdd: true` a `tests:` block
+   naming the test cases derived from the ACs it covers.
    The last phase is always `Verify` with one task: every project check green. **Heavy
    tasks:** a task whose body would pass about 100 lines first gets the split question (is
    it really one unit?); when it is, its body goes to `tasks/T<n>.md` from

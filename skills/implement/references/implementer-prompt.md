@@ -10,7 +10,8 @@ Task (verbatim from tasks.md, or from tasks/T<id>.md when its entry is an index 
 Acceptance criteria this task covers (from spec.md, verbatim):
 <AC lines>
 Design (read these headings of <spec_root>/<feature>/design.md, when present): <headings>
-Read first: <plugin root>/skills/_shared/principles.md, then <docs_root>/conventions.md.
+Read first: <plugin root>/skills/_shared/principles.md, then <docs_root>/conventions.md,
+then the layer files: <absolute paths from layers.<task.layer>, or "none">.
 Code root: <code_root>. Checks to run after the done-when: test: <cmd>; typecheck: <cmd>;
 lint: <cmd>; format: <cmd>; build: <cmd> (omit the ones not detected).
 Do not commit. Do not touch files outside the task's list without naming them under
@@ -24,6 +25,11 @@ Repair dispatch (step 6 of the protocol), once:
 Feature: <feature>. The finished feature fails a project check. Make it pass without
 weakening tests. Failing check: <name>: <command>. Last output:
 <output_tail from run-checks, at most 40 lines>
-Read first: <principles.md>, <conventions.md>. Code root: <code_root>. Do not commit.
+Read first: <principles.md>, <conventions.md>, then the layer files: <union over the
+layers the feature's tasks name, or "none">. Code root: <code_root>. Do not commit.
 Answer in the fixed four-section shape, at most 30 lines.
 ```
+
+Layer files come from `specd.yml` `layers.<name>`, one list per layer, paths relative to
+`code_root`; the main thread resolves them to absolute paths and drops, with a note for the
+handoff, any that do not exist. The agent reads them; their text never enters the prompt.

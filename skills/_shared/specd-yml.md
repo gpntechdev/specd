@@ -57,6 +57,12 @@ sources: []                  # M5. Items: {type: local, paths: [...]} | {type: u
 skills:                      # M6. Where toolsmith may search for third-party skills
   allowlist:
     - anthropics/skills
+
+layers:                      # M6. layer -> files implement adds to "Read first" for tasks of
+                             #     that layer; paths relative to code_root. Filled by toolsmith
+                             #     or by hand, e.g.
+                             #     frontend:
+                             #       - .claude/skills/react-conventions/SKILL.md
 ```
 
 ## Key semantics
@@ -80,6 +86,7 @@ skills:                      # M6. Where toolsmith may search for third-party sk
 | `docs.lessons_max_lines` | integer | lessons-prune |
 | `sources` | list | start (M5) |
 | `skills.allowlist` | list of `owner/repo` | toolsmith (M6) |
+| `layers.<name>` | list of paths, relative to `code_root` (not `workspace_root`) | tasks (the `layer` vocabulary), implement and review (files the agent reads first); written by toolsmith (M6) or by hand |
 
 Retention per tier: trivial and quick close with `clean` unless the feature's `state.yml` says
 otherwise; full uses `flow.retention`.
