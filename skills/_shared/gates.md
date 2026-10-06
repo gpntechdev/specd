@@ -33,8 +33,11 @@ only in the conversation. Gated steps: `specify` G1, `design` G2, `tasks` G3, `i
 
 `flow.gate_granularity` decides where `implement` stops for G4: `task` after every task,
 `phase` after the last task of each phase (default), `end` once when no task is left. A task
-marked `risk: high` in `tasks.md` stops regardless. G4 is re-stamped at every stop; a
-rejected stop leaves the finished tasks `done` and the run resumable.
+marked `risk: high` in `tasks.md` stops regardless. G4 is re-stamped at every stop. The
+artifact is code, so **edit** is a revision dispatch to the implementer, not a text edit.
+At `phase` and `end` the landed tasks are already committed; a rejected stop leaves them
+`done` and the run resumable. At `task`, and for a `risk: high` task, the stopped task is
+not yet committed: approve commits it, reject leaves it `todo` with its files in the tree.
 
 ## Rules
 
