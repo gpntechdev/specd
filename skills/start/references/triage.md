@@ -47,5 +47,16 @@ the count; empty when none fired.
 | full | anything else, or `ambiguous` |
 
 The user confirms or overrides; both values are kept (`triage.proposed`, `tier`). The tier
-sets the default retention (`clean` for trivial and quick, `flow.retention` for full) and is
-shown by `status`; in this milestone every tier runs every step.
+sets the default retention (`clean` for trivial and quick, `flow.retention` for full) and
+the flow (`scripts/state` owns the order; `_shared/state-yml.md` describes it):
+
+| Tier | Flow | Gates |
+|---|---|---|
+| trivial | implement (one implicit task from the brief) → deliver → close | G4, G5 |
+| quick | specify (spec and tasks, one gate) → implement → review → deliver → close | G1+G3, G4, G5 |
+| full | specify → design → tasks → implement → review → verify → docs → deliver → close | G1..G5 |
+
+Say this in one line when asking for confirmation. A tier can only go up later: `specify`
+and `implement` propose escalation when a signal fires mid-flow, and `/specd:start <feature>
+--tier <tier>` escalates by hand; what exists is carried over. `--tier` on a new feature
+skips the scan: the user already knows the size.
