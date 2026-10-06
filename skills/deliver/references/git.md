@@ -29,6 +29,13 @@ exists; `git.authority: none` never asks.
 that rejects the push (no permission, protected name) is reported verbatim and the run stops
 at G5 recorded; no retry with different flags.
 
+## Re-deliver
+
+After a feedback cycle the branch already tracks the remote: no squash is offered, the
+`WIP:` fix commits stay as they are (squash-merge on the forge collapses them), the push is
+a plain `git push`, and the PR in `state.yml` `pr` picks the commits up by itself. The G5
+view's "since the last push" log is what the reviewers will see as new.
+
 ## Draft PR or MR
 
 | `git.pr_host` | Command |
