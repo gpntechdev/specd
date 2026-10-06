@@ -133,12 +133,12 @@ So the command surface is `/specd:start <feature> [--from TICKET-123 | url | fil
 | specify | skill, interactive | judgment | `spec.md`; critic pass; **G1** |
 | design | `architect` drafts, main thread interviews | judgment | `design.md`; critic pass; **G2** |
 | tasks | skill | judgment | `tasks.md`; **G3** (confirm or edit the list) |
-| implement | `implementer` per task | execution | code + tests; project checks with bounded self-repair; **G4** at `task` / `phase` (default) / `end`; risky tasks always stop |
+| implement | `implementer` per task | execution | code + tests; project checks with bounded self-repair; **G4** at `task` / `phase` (default) / `end`; risky tasks always stop; `WIP:` commit per task (after G4 at `task`); optional task selection |
 | review | `reviewer`, fresh context: spec, design, tasks, diff only | judgment | `review.md`; specialist passes if enabled; findings loop back to implement |
 | verify | skill | execution | AC → evidence matrix filled (test, check, or manual note) |
 | runtime-verify | optional skill | execution | exercises the feature via browser MCP / HTTP |
 | docs | `doc-writer`, only if needed | execution | user-facing / project doc updates |
-| deliver | skill | cheap | **G5** full diff + review → branch, atomic commits, push, draft PR |
+| deliver | skill | cheap | **G5** full diff + review → optional squash of the `WIP:` commits before the first push, push, draft PR |
 | close | skill | cheap | `docs/features/<name>.md`, decisions/architecture deltas, then retention policy |
 
 **Design, kept optional and in one file.** Instead of separate `design`, `data-model`, `sequences`, `api` commands, one `design` step opens by deciding which sections the feature needs, from spec signals and tier, and tells you before writing anything:

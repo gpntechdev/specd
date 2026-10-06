@@ -400,3 +400,28 @@ Consequences: one `implementer`, one `reviewer`; the knowledge varies, the agent
 `skills.allowlist` it is a list key and is edited by hand. A per-layer agent with its own
 `tools:` (browser or database MCP) is the escalation path if a layer ever needs it, and
 would be routed from the same `layers` map; not built.
+
+## 2026-10-06 M2 feedback: WIP task commits, commit after G4 at task granularity, task selection, squash choice at G5
+
+Context: a real run at `flow.gate_granularity: task` committed each task before its G4 stop,
+so every change requested at the stop became one more commit and the branch read as noise;
+the task commits also carried their final Conventional Commit message while still under
+review. The user also wanted to run a subset of the task list (`T1-T3`, `T1, T4, T5`).
+Decision: every code commit `implement` makes is `WIP: ` + the task's `commit:` line (the
+repair commit too). At `task` granularity, and for a `risk: high` task, the G4 stop comes
+first and the commit on approve; a reject leaves the task `todo` with its files uncommitted
+in the tree, and the next dispatch of that task is told about them. At `phase` and `end`
+tasks commit before the stop as before; a G4 edit is a revision dispatch, landing as a
+further `WIP:` commit when the task was already committed. `/specd:implement [feature]
+[tasks]` accepts ids and `T<n>-T<m>` ranges, comma or space separated; a selected task whose
+dependency is neither `done` nor selected is refused by name, never widened silently; the
+run ends after the last selected task with a G4 stop and without the finish step.
+`deliver` offers at G5, once, to squash the branch into one Conventional Commit through
+`scripts/squash-wip` (soft reset to the merge base, body = the squashed subjects), only when
+the branch has no upstream; otherwise the commits stay. Amends the 2026-09-24 "commit per
+step" entry (task commits are WIP commits) and the PLAN 3.3 deliver row ("atomic commits" →
+WIP commits, optionally squashed). No new `state.yml` or `specd.yml` keys.
+Consequences: a feature branch reads as drafts until deliver; the one history rewrite specd
+performs is before any push, on the user's choice, and recoverable from the `before` sha the
+script prints. In embedded mode the squash folds the `spec(<feature>): …` commits in as well.
+A selected run never sets `step=review`; the full command finishes the feature.

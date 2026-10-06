@@ -9,6 +9,20 @@
 | `push` | branch | commits | push the branch |
 | `draft_pr` | branch | commits | push, then a draft PR or MR |
 
+## Squash
+
+`implement` commits every task as `WIP: <its commit line>`. Before the first push, step 4
+offers to collapse the branch into one commit with
+`"${CLAUDE_PLUGIN_ROOT}/scripts/squash-wip" --from <code_root> --base <default> --title "<title>"`:
+a soft reset to the merge base and one commit, so the tree is unchanged and `before` in its
+output restores the old history (`git reset --hard <before>`). In embedded mode the
+`spec(<feature>): …` commits on the branch collapse into it too; its body lists every
+squashed subject. Title: Conventional Commit from the spec's problem line, `type(scope):
+summary`, type and scope as the tasks' commit lines use them, under 70 characters, no ticket
+key (that goes in the PR title and `Refs:`). The script refuses, and the step keeps the
+commits, when the branch already tracks a remote, the tree is dirty, or no `WIP:` commit
+exists; `git.authority: none` never asks.
+
 ## Push
 
 `git -C <code_root> push -u origin <branch>` where `branch` comes from `state.yml`. A remote

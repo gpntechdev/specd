@@ -1,0 +1,103 @@
+#!/usr/bin/env python3
+"""Squash a feature branch's commits into one Conventional Commit, printed as JSON.
+
+Usage: squash-wip --from DIR --base BRANCH --title TEXT [--dry-run]
+
+Collapses every commit between `git merge-base BASE HEAD` and HEAD into one commit whose
+subject is TITLE and whose body lists the squashed subjects, oldest first, with the `WIP: `
+prefix stripped. Mechanics: `git reset --soft <merge-base>` then `git commit`; nothing is
+rebased, so the tree is identical before and after. Refuses, with one line on stderr and
+exit 1, when the tree is dirty, HEAD is detached, the branch already has an upstream (a
+squash would then need a force push), there is nothing between base and HEAD, or no commit
+carries the `WIP: ` prefix. --dry-run prints the plan and touches nothing. `before` in the
+output is the recovery point: `git reset --hard <before>`. Stdlib only.
+"""
+import json
+import os
+import subprocess
+import sys
+import tempfile
+
+PREFIX = "WIP: "
+
+
+def opt(argv, flag, default=None):
+    if flag in argv:
+        i = argv.index(flag)
+        if i + 1 >= len(argv):
+            print("specd: %s needs a value" % flag, file=sys.stderr)
+            sys.exit(2)
+        return argv[i + 1]
+    return default
+
+
+def git(root, *args):
+    p = subprocess.run(["git", "-C", root] + list(args), capture_output=True, text=True)
+    return p.returncode, (p.stdout or "").strip(), (p.stderr or "").strip()
+
+
+def refuse(msg):
+    print("specd: %s" % msg, file=sys.stderr)
+    return 1
+
+
+def main(argv):
+    if "--help" in argv or "-h" in argv:
+        print(__doc__.strip())
+        return 0
+    root = os.path.abspath(opt(argv, "--from", "."))
+    base = opt(argv, "--base")
+    title = opt(argv, "--title")
+    dry = "--dry-run" in argv
+    if not base or not title:
+        return refuse("--base and --title are required")
+
+    code, branch, err = git(root, "symbolic-ref", "--short", "-q", "HEAD")
+    if code != 0:
+        return refuse("not on a branch in %s (%s)" % (root, err or "detached HEAD"))
+    code, status, _ = git(root, "status", "--porcelain")
+    if status:
+        return refuse("tree is dirty; commit or stash first")
+    code, upstream, _ = git(root, "rev-parse", "--abbrev-ref", "--symbolic-full-name", "@{u}")
+    if code == 0:
+        return refuse("%s already tracks %s; squashing would need a force push" % (branch, upstream))
+    code, merge_base, err = git(root, "merge-base", base, "HEAD")
+    if code != 0:
+        return refuse("no merge base between %s and HEAD (%s)" % (base, err))
+    code, before, _ = git(root, "rev-parse", "HEAD")
+    code, log, _ = git(root, "log", "--reverse", "--format=%H%x00%s", "%s..HEAD" % merge_base)
+    commits = [line.split("\x00", 1) for line in log.splitlines() if line]
+    if not commits:
+        return refuse("nothing between %s and HEAD" % base)
+    subjects = [s for _, s in commits]
+    if not any(s.startswith(PREFIX) for s in subjects):
+        return refuse("no %s commit on %s; nothing to squash" % (PREFIX.strip(), branch))
+
+    body = [s[len(PREFIX):] if s.startswith(PREFIX) else s for s in subjects]
+    out = {"branch": branch, "base": merge_base, "before": before, "squashed": len(commits),
+           "subjects": body, "message": title + "\n\n" + "\n".join(body) + "\n"}
+    if dry:
+        print(json.dumps(out, indent=2))
+        return 0
+
+    fd, path = tempfile.mkstemp(prefix="specd-squash-", suffix=".txt")
+    try:
+        with os.fdopen(fd, "w") as f:
+            f.write(out["message"])
+        code, _, err = git(root, "reset", "--soft", merge_base)
+        if code != 0:
+            return refuse("git reset failed: %s" % err)
+        code, _, err = git(root, "commit", "-q", "-F", path)
+        if code != 0:
+            git(root, "reset", "--soft", before)
+            return refuse("git commit failed, branch restored to %s: %s" % (before[:12], err))
+    finally:
+        os.unlink(path)
+    code, after, _ = git(root, "rev-parse", "HEAD")
+    out["after"] = after
+    print(json.dumps(out, indent=2))
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main(sys.argv[1:]))

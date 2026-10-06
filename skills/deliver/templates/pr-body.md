@@ -6,7 +6,8 @@
 
 ## Changes
 
-<!-- One line per commit on the branch, from `git log <default>..HEAD --oneline`, message only. -->
+<!-- One line per commit on the branch, from `git log <default>..HEAD --oneline`, message only;
+     after a squash, the squash commit's body lines instead. -->
 
 ## Verification
 
