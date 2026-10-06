@@ -453,3 +453,99 @@ after the first push carry their plain message: `implement` drops the `WIP:` pre
 `pr` is set, since nothing squashes them and they stay in the history. The user runs
 `close` before merging; `status` keeps pointing at it. Features whose `state.yml` predates
 this entry have no `docs` step recorded: `verify` sets `step=docs` on its next run.
+
+## 2026-10-06 M3: the step order per tier lives in `scripts/state`; `step=next`
+
+Context: M3 makes the tier matter. The order of steps differs per tier, `implement` and
+`verify` carried the PR-loop routing in prose, and every skill named the step after its
+own, which is wrong as soon as two tiers share a step.
+Decision: `scripts/state` holds `ORDERS`: trivial `start, implement, deliver, close`; quick
+`start, specify, implement, review, deliver, close`; full every step. `docs` joins a light
+order only when the feature's `retention` is `distill` (full keeps it always, with its
+skip-by-policy question). `verify` does not run on light tiers: on quick the review's AC
+table is the evidence `deliver` shows, trivial has no acceptance criteria. `set` accepts
+`step=next`, resolved against the tier's order and skipping `review` and `docs` once `pr`
+is set; `init` without `--step` picks the first step after `start`; `list` reports `next`.
+`check` refuses a step outside the tier's flow and names the escalation command;
+`implement` needs G3 except on trivial. Skills now set `step=next` and print the step the
+script reports. Supersedes the 2026-09-24 "every feature runs the full flow" entry.
+Consequences: no skill knows what follows it; a new tier or a reordered step is one edit
+in the script. Trivial has two gates (G4 from its single task's stop, G5), not the one
+PLAN 3.3 drew, because G4 is where a revision can be asked for.
+
+## 2026-10-06 M3: specify-lite is one run, two files, one gate
+
+Context: PLAN 3.3 gives quick "spec and tasks in one short file, one gate". A single file
+with a tasks section would make `implement`, `review`, `deliver` and `close` test the tier
+before every read.
+Decision: on quick, `specify` runs one interview round, re-triages the spec against the
+design-section signal table and a five-task cap, drafts `tasks.md` from the `tasks`
+template and breakdown rules (one phase plus Verify, matrix with Test filled and Evidence
+empty), and passes one G1 question over both files; approve stamps `G1` and `G3` and adds
+the task ids. Rules in `skills/specify/references/lite.md`. A re-triage hit proposes
+escalation to full before the tasks are drafted.
+Consequences: downstream steps are tier-blind; the quick folder has one more file that
+`close` removes anyway. A sixth task is an escalation signal, never a longer list.
+
+## 2026-10-06 M3: a trivial feature's task is composed from `brief.md`
+
+Context: PLAN 3.3 says trivial has no spec file and "the request is recorded in
+`state.yml`". `start` already writes the request into `brief.md` for every tier, and the
+implementer needs a task block to build from.
+Decision: no `request` key. `implement` composes `T1` in the main thread from the brief
+(goal = the user's words, files = the implementer's choice, done-when = the observable plus
+green checks, commit derived from the wording), adds `tasks.T1` to `state.yml` and
+dispatches the trivial prompt variant, in which the brief's words stand in for the ACs. The
+spec folder holds `brief.md` and `state.yml` only. `deliver` titles the PR from the brief.
+Consequences: trivial costs one dispatch, one G4 stop and G5; the brief is the record and
+leaves with the folder on `close` (`clean`).
+
+## 2026-10-06 M3: escalation is `state escalate`; what exists is carried over
+
+Context: PLAN 3.3 wants a quick feature that trips a signal to stop and propose escalation,
+"carrying over what exists", without saying how.
+Decision: `state escalate --to TIER [--signal S]` raises `tier`, writes
+`triage.escalated: "<from>-><to> at <step>"` (new key), appends the signal to
+`triage.signals`, rewinds `step` to the earliest step the old order lacked (quick→full
+during implement lands on `design`, trivial→quick on `specify`, an escalation during
+`specify` stays there) and clears the gates from that step on. Every file and every `done`
+task stays; `tasks` revises an existing `tasks.md` in place. Proposers: `specify` on quick
+(a design signal or more than five tasks), `implement` on trivial and quick (a report naming
+a migration, a new dependency, a changed public interface, three modules, or two readings of
+the task; the agent's files stay uncommitted). By hand: `/specd:start <feature> --tier
+<tier>` on an existing feature; on a new one `--tier` skips the triage scan. Escalation only
+goes up; `close` and start over is the way down. `status` shows `quick→full`.
+Consequences: a feature under-sized by triage loses nothing; `triage.escalated` is the
+signal for tuning the triage table after the week of mixed tasks.
+
+## 2026-10-06 M3: `fix` is a skill; the reproduction gates the spec and the code
+
+Context: PLAN 3.3 says "`fix` is quick with a reproduce-first step" and lists `fix` among
+the skills. The reproduce step needs a home and an enforcement point.
+Decision: `skills/fix` opens the feature through `start`'s intake, branch and commit steps
+(linked, not copied) at tier quick, branch `fix/<slug>`, then localises the symptom with one
+explorer run and reproduces it: a test-only implementer dispatch or a command the user
+gives, run by the main thread and required to fail for the symptom's reason. New
+`state.yml` section `fix`: `symptom` (set marks a fix), `repro` (the command), `reproduced`
+(timestamp). `state check` refuses `specify` and `implement` while `reproduced` is empty;
+`state list` reports `next: fix` then. The reproduction test is committed `WIP: test(…):
+reproduce …`; `specify` makes AC1 `<repro> exits 0` and T1 the fix.
+Consequences: no spec and no code before a red reproduction; a bug that does not reproduce
+stops at `fix` with the output shown. A command in `fix.repro` cannot contain a double
+quote (state.yml rule), so tests are narrowed by name.
+
+## 2026-10-06 M3: the critic runs from one shared block; `critique` prints only
+
+Context: the `<!-- specd:critic-hook: M3 -->` markers in `specify` and `design` are where the
+critic goes; PLAN 3.3 wants it at exactly those two points, full tier, at most ten findings
+folded into the open questions, plus `critique` on demand.
+Decision: `agents/critic.md` (read-only, judgment role) returns one `## Findings` section,
+`C<n> · kind · pointer · sentence · resolve: question`, at most ten. `skills/_shared/
+critic.md` holds the dispatch prompt (artifact, `project.md`, and `spec.md` for a design)
+and the folding rules: `specify` appends `Q<n> … critic C<k>` to Open questions, `design`
+appends to Risks, duplicates of existing items are skipped and counted. `flow.critic`:
+`gates` runs it on full before G1 and G2; `always` adds quick's G1; `off` never. `/specd:
+critique <path>` runs the same agent on any file and prints the findings; it writes nothing,
+so an approved artifact is only changed by re-running its step.
+Consequences: one agent, one prompt, three callers; the user resolves findings at the gate
+and nothing is folded as resolved.
