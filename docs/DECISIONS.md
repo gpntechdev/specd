@@ -425,3 +425,30 @@ Consequences: a feature branch reads as drafts until deliver; the one history re
 performs is before any push, on the user's choice, and recoverable from the `before` sha the
 script prints. In embedded mode the squash folds the `spec(<feature>): …` commits in as well.
 A selected run never sets `step=review`; the full command finishes the feature.
+
+## 2026-10-06 M2 feedback: docs before the PR, deliver asks how far, PR feedback loop, close is retention only
+
+Context: `close` wrote the feature record, decision files and doc deltas after the PR was
+opened and deleted the spec folder in the same run, so reviewers saw the docs land late and
+nothing could go back to the implement loop once comments arrived: no step read PR comments,
+`deliver` ended at `step: close` and a re-run would open a second PR. `deliver` also went as
+far as `git.authority` allowed without asking per run.
+Decision: a `docs` step between `verify` and `deliver` (PLAN 3.3 line 115 already drew it)
+takes close's distill protocol; it writes when the effective retention is `distill` and asks
+otherwise; the spec folder stays. `deliver` asks once after G5 how far to go (push + draft
+PR / push / record only, capped by authority; never a second PR). A `feedback` skill fetches
+the PR comments through `scripts/pr-comments` (`gh api` / `glab api`, or pasted text),
+resolves each as fix / reply / skip, appends fix tasks under `PR feedback (round n)`, records
+`## PR round n` in `review.md`, prints replies for the user to post and sets
+`step=implement`. A set `pr` in `state.yml` routes the loop: `implement` then ends at
+`verify`, `verify` at `deliver`; the reviewer agent and `docs` are not re-run (available by
+hand). `close` is retention only, runs on the branch once the PR is settled and before the
+merge, refuses a merged PR, and for `distill` requires the record `docs` wrote. `scripts/
+state` gains `docs` in the step order and a `feedback` check (ok when `pr` is set and the
+feature is not closed); no new `state.yml` or `specd.yml` keys. Amends the 2026-09-24
+git-model entry and PLAN rows 140–142.
+Consequences: the PR carries the feature and its docs from the first push; the spec folder
+lives until the thread is settled, so fixes keep their spec, tasks and state. Fix commits
+after the first push stay `WIP:` (the forge's squash-merge collapses them). The user runs
+`close` before merging; `status` keeps pointing at it. Features whose `state.yml` predates
+this entry have no `docs` step recorded: `verify` sets `step=docs` on its next run.

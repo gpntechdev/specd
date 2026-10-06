@@ -73,7 +73,7 @@ docs/
   architecture/       overview.md + one file per subsystem or area
   decisions/          0001-title.md … (context, decision, consequences) + README index
   data-models/        one file per domain, only if the project has them
-  features/           one file per shipped feature: what it does, where it lives; written by `close`
+  features/           one file per shipped feature: what it does, where it lives; written by `docs`
 ```
 
 `lessons.md` stays a single capped file on purpose: it is a holding area, and growth is the signal to promote items into `conventions.md` or a decision, or prune them. In brownfield, existing project docs are linked from `architecture/overview.md`, not duplicated.
@@ -91,7 +91,7 @@ state.yml     tier, current step, gate approvals, task checklist
 
 **Closing a feature** (`close`, policy chosen per project, overridable per feature):
 
-- `distill` (default for full): extract durable knowledge into `docs/` (`features/<name>.md`, new decision files, architecture/data-model deltas), then delete the spec folder.
+- `distill` (default for full): the durable knowledge was already extracted into `docs/` by the `docs` step before the PR (`features/<name>.md`, new decision files, architecture/data-model deltas); `close` deletes the spec folder once the PR is settled (DECISIONS 2026-10-06).
 - `clean` (default for trivial/quick): delete the spec folder; nothing worth keeping.
 - `keep`: leave it, mark closed in `state.yml`; `status` lists kept folders older than N days so they don't pile up, and `spec-clean` distills or deletes them in batch.
 
@@ -112,7 +112,7 @@ Agents load principles by skill trigger, project knowledge just-in-time by point
 ```
 start ──▶ specify ─G1▶ [design] ─G2▶ tasks ─G3▶ implement ⇄ checks ─G4▶ review ▶ verify
       (intake+triage)  ▲critic          ▲critic
-      ▶ [runtime-verify] ▶ [docs] ─G5▶ deliver ▶ close
+      ▶ [runtime-verify] ▶ docs ─G5▶ deliver ▶ [feedback ▶ implement ▶ verify ▶ deliver]* ▶ close ▶ merge
 ```
 
 Square brackets = optional. Every step ends with a handoff block (what was produced, what to review, next command); `/clear` between steps is the norm; a step refuses to run if the previous gate is not approved in `state.yml`.
@@ -137,9 +137,10 @@ So the command surface is `/specd:start <feature> [--from TICKET-123 | url | fil
 | review | `reviewer`, fresh context: spec, design, tasks, diff only | judgment | `review.md`; specialist passes if enabled; findings loop back to implement |
 | verify | skill | execution | AC → evidence matrix filled (test, check, or manual note) |
 | runtime-verify | optional skill | execution | exercises the feature via browser MCP / HTTP |
-| docs | `doc-writer`, only if needed | execution | user-facing / project doc updates |
+| docs | skill | judgment | `docs/features/<name>.md`, decision files, architecture/data-model deltas, written before the PR so it carries them; skipped by policy for trivial/quick |
 | deliver | skill | cheap | **G5** full diff + review → optional squash of the `WIP:` commits before the first push, push, draft PR |
-| close | skill | cheap | `docs/features/<name>.md`, decisions/architecture deltas, then retention policy |
+| feedback | skill | cheap | PR comments (via `pr-comments`) → fix / reply / skip; fixes become tasks, `step` back to implement; replies printed, never posted |
+| close | skill | cheap | retention policy only (distill: folder removed once docs wrote the record; clean; keep), on the branch before the merge |
 
 **Design, kept optional and in one file.** Instead of separate `design`, `data-model`, `sequences`, `api` commands, one `design` step opens by deciding which sections the feature needs, from spec signals and tier, and tells you before writing anything:
 
@@ -171,7 +172,7 @@ Agents: `explorer` (codebase scan, cheap, returns a map with file:line pointers)
 
 Stack specialisation is knowledge, not agents: a task names a `layer` (`frontend`, `backend`, …), `specd.yml` `layers` maps each layer to project skill files, and `implement` and `review` pass those files to the one `implementer` / `reviewer` as "read first". Subagents cannot spawn subagents, so routing always happens in the main thread; a per-layer agent is added only when a layer needs tools the generic agent lacks (a browser or database MCP).
 
-Skills: `init`, `onboard`, `scaffold`, `toolsmith`, `config` (change a setting mid-flow, e.g. gate granularity or PR host), `start`, `specify`, `design`, `tasks`, `implement`, `review`, `verify`, `runtime-verify`, `deliver`, `close`, `fix`, `critique`, `status` (resume), `principles`, `skill-audit`, utils (`research`, `analyze`, `docs-clean`, `spec-clean`, `lessons-prune`).
+Skills: `init`, `onboard`, `scaffold`, `toolsmith`, `config` (change a setting mid-flow, e.g. gate granularity or PR host), `start`, `specify`, `design`, `tasks`, `implement`, `review`, `verify`, `runtime-verify`, `docs`, `deliver`, `feedback`, `close`, `fix`, `critique`, `status` (resume), `principles`, `skill-audit`, utils (`research`, `analyze`, `docs-clean`, `spec-clean`, `lessons-prune`).
 
 Model tiers are roles, not model names: `judgment`, `execution`, `cheap`, mapped in `specd.yml` (default opus/sonnet/haiku), overridable per role.
 
