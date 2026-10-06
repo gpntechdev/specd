@@ -12,7 +12,7 @@ Usage:
 Keys are `top` or `section.key`. `set` patches lines in place (comments, order and unknown
 keys survive), may add missing `tasks.<id>` keys, accepts `now` as an ISO-8601 UTC timestamp,
 always sets `updated`, and is all-or-nothing. `check` exits 1 with `run_first` when STEP may
-not run yet. `find` resolves the feature by name, then by branch, then as the only open one.
+not run yet; `--step feedback` passes whenever a PR is recorded and the feature is not closed. `find` resolves the feature by name, then by branch, then as the only open one.
 Every command prints JSON; refusals print one line on stderr and exit 1. Stdlib only.
 """
 import glob
@@ -26,8 +26,9 @@ PLUGIN_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 REFERENCE = os.path.join(PLUGIN_ROOT, "skills", "_shared", "state-yml.md")
 LINE = re.compile(r"^(\s*)([A-Za-z_][\w-]*):(\s*)(.*?)(\s*#.*)?$")
 BARE = re.compile(r"^(true|false|-?\d+|[a-z_]+|[A-Z]\d+)$")
-STEPS = ["start", "specify", "design", "tasks", "implement", "review", "verify", "deliver",
-         "close", "closed"]
+STEPS = ["start", "specify", "design", "tasks", "implement", "review", "verify", "docs",
+         "deliver", "close", "closed"]
+SIDE_STEPS = ("feedback",)  # not a position in the order: checked on their own condition
 TIERS = ("trivial", "quick", "full")
 RETENTIONS = ("", "distill", "clean", "keep")
 ADDABLE_SECTIONS = ("tasks",)
@@ -257,7 +258,7 @@ def cmd_check(argv):
     path, step = opt(argv, "--file"), opt(argv, "--step")
     if not (path and step):
         raise ValueError("check needs --file and --step")
-    if step not in STEPS or step == "closed":
+    if step not in STEPS + list(SIDE_STEPS) or step == "closed":
         raise ValueError("unknown step %s" % step)
     if not os.path.isfile(path):
         return {"ok": False, "reason": "no state file at %s" % path, "run_first": "/specd:start"}
@@ -266,6 +267,13 @@ def cmd_check(argv):
     if current not in STEPS:
         raise ValueError("state.yml has unknown step %r" % current)
     feature = data.get("feature", "")
+    if step == "feedback":
+        if current == "closed":
+            return {"ok": False, "reason": "%s is closed" % feature, "run_first": "/specd:start"}
+        if not str(data.get("pr", "")).strip():
+            return {"ok": False, "reason": "no PR recorded for %s" % feature,
+                    "run_first": "/specd:deliver %s" % feature}
+        return {"ok": True, "feature": feature, "step": current, "rerun": False}
     cur_i, want_i = STEPS.index(current), STEPS.index(step)
     if current == "closed" and step != "close":
         return {"ok": False, "reason": "%s is closed" % feature, "run_first": "/specd:start"}
@@ -282,7 +290,7 @@ def cmd_check(argv):
     elif step == "implement":
         needs = [("G3", "tasks")]
     elif step == "deliver" and current != "deliver":
-        return {"ok": False, "reason": "step is %s; deliver runs once verify is done" % current,
+        return {"ok": False, "reason": "step is %s; deliver runs once docs is done" % current,
                 "run_first": "/specd:%s %s" % (current, feature)}
     for gate, cmd in needs:
         if not gate_ok(data, gate):

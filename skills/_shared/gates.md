@@ -3,7 +3,8 @@
 **Reference-only.** Not a skill. Read by every step of the feature flow; written by nobody.
 Approval lives in the feature's `state.yml` (schema: [`state-yml.md`](./state-yml.md)), never
 only in the conversation. Gated steps: `specify` G1, `design` G2, `tasks` G3, `implement` G4,
-`deliver` and `scaffold` G5.
+`deliver` and `scaffold` G5. `docs` and `feedback` have no gate; `feedback` is a side entry
+that `state check` allows whenever a PR is recorded.
 
 ## Entering any step
 
