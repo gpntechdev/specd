@@ -42,7 +42,7 @@ cd <repo> && claude --plugin-dir /path/to/specd
 /specd:specify <feature>                  # spec.md, gate G1
 /specd:design <feature>                   # design.md by the architect agent, gate G2
 /specd:tasks <feature>                    # tasks.md with the coverage matrix, gate G3
-/specd:implement <feature> [T1-T3]        # implementer agent per task, WIP commit per task,
+/specd:implement <feature> [T1-T3]        # implementer agent per task, WIP commit per task until the PR,
                                           # gate G4 at the configured granularity
 /specd:review <feature>                   # reviewer agent in a fresh context; fixes become
                                           # tasks and send you back to implement

@@ -449,6 +449,7 @@ feature is not closed); no new `state.yml` or `specd.yml` keys. Amends the 2026-
 git-model entry and PLAN rows 140–142.
 Consequences: the PR carries the feature and its docs from the first push; the spec folder
 lives until the thread is settled, so fixes keep their spec, tasks and state. Fix commits
-after the first push stay `WIP:` (the forge's squash-merge collapses them). The user runs
+after the first push carry their plain message: `implement` drops the `WIP:` prefix once
+`pr` is set, since nothing squashes them and they stay in the history. The user runs
 `close` before merging; `status` keeps pointing at it. Features whose `state.yml` predates
 this entry have no `docs` step recorded: `verify` sets `step=docs` on its next run.

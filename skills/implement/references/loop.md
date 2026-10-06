@@ -50,17 +50,19 @@ At a stop whose task is still uncommitted ("after approve" rows): **approve** fl
 `done` and commits it; **edit** re-dispatches it with the user's request (revision block in
 `implementer-prompt.md`), lands the result in the tree and asks again; **reject** leaves it
 `todo`, its files uncommitted in the tree, and ends with the handoff. At a `phase` or `end`
-stop the landed tasks are already committed; an edit there lands as one more `WIP:` commit
-per revised task, `WIP: <commit line> (G4 edit)`.
+stop the landed tasks are already committed; an edit there lands as one more commit per
+revised task, `<commit line> (G4 edit)`, prefixed per the rule below.
 
 ## Commits
 
-- Every code commit this skill makes starts with `WIP: `; the prefix marks what `deliver`
-  may squash into one commit before the first push.
-- Message: `WIP: ` + the task's `commit:` line, verbatim. Files: the agent's `## Changed`
+- Prefix rule: while `pr` in `state.yml` is empty, every code commit this skill makes
+  starts with `WIP: `; the prefix marks what `deliver` may squash into one commit before
+  the first push. Once `pr` is set (fixes from `feedback`, or any later task), there is no
+  prefix: those commits are pushed to the open PR as they are and stay in the history.
+- Message: the task's `commit:` line, verbatim, under the prefix rule. Files: the agent's `## Changed`
   plus the files it named under `## Deviations`, plus `state.yml` with the task flipped to
   `done`. Anything else `git status` shows stays unstaged and is mentioned in the handoff.
-- The end-of-run repair commits as `WIP: fix(<scope>): make <check> pass`, scope as in the
+- The end-of-run repair commits as `fix(<scope>): make <check> pass` (same prefix rule), scope as in the
   feature's tasks. G4 stamps and the final `step=review` ride in `spec(<feature>): implement`
   when the run ends with `state.yml` dirty.
 - `git.authority: none`: no commit; the task still flips to `done` and the handoff says the

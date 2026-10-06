@@ -11,7 +11,8 @@
 
 ## Squash
 
-`implement` commits every task as `WIP: <its commit line>`. Before the first push, step 4
+`implement` commits every task as `WIP: <its commit line>` until a PR is recorded. Before
+the first push, step 4
 offers to collapse the branch into one commit with
 `"${CLAUDE_PLUGIN_ROOT}/scripts/squash-wip" --from <code_root> --base <default> --title "<title>"`:
 a soft reset to the merge base and one commit, so the tree is unchanged and `before` in its
@@ -32,7 +33,8 @@ at G5 recorded; no retry with different flags.
 ## Re-deliver
 
 After a feedback cycle the branch already tracks the remote: no squash is offered, the
-`WIP:` fix commits stay as they are (squash-merge on the forge collapses them), the push is
+fix commits carry their plain Conventional Commit messages (`implement` drops the `WIP:`
+prefix once `pr` is set) and stay in the history, the push is
 a plain `git push`, and the PR in `state.yml` `pr` picks the commits up by itself. The G5
 view's "since the last push" log is what the reviewers will see as new.
 

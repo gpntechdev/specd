@@ -133,7 +133,7 @@ So the command surface is `/specd:start <feature> [--from TICKET-123 | url | fil
 | specify | skill, interactive | judgment | `spec.md`; critic pass; **G1** |
 | design | `architect` drafts, main thread interviews | judgment | `design.md`; critic pass; **G2** |
 | tasks | skill | judgment | `tasks.md`; **G3** (confirm or edit the list) |
-| implement | `implementer` per task | execution | code + tests; project checks with bounded self-repair; **G4** at `task` / `phase` (default) / `end`; risky tasks always stop; `WIP:` commit per task (after G4 at `task`); optional task selection |
+| implement | `implementer` per task | execution | code + tests; project checks with bounded self-repair; **G4** at `task` / `phase` (default) / `end`; risky tasks always stop; `WIP:` commit per task until the PR exists (after G4 at `task`); optional task selection |
 | review | `reviewer`, fresh context: spec, design, tasks, diff only | judgment | `review.md`; specialist passes if enabled; findings loop back to implement |
 | verify | skill | execution | AC → evidence matrix filled (test, check, or manual note) |
 | runtime-verify | optional skill | execution | exercises the feature via browser MCP / HTTP |

@@ -8,7 +8,8 @@ description: >
   `tasks.md` one at a time through the implementer agent, or only the selected ones
   (`T1-T3`, `T1, T4, T5`), verifies each with the project checks, stops for your approval
   (G4) at the configured granularity and on every high-risk task, commits each task as a
-  `WIP:` commit (after the approval when the stop is per task), and resumes from the first
+  `WIP:` commit until the feature is on a PR (after the approval when the stop is per
+  task), and resumes from the first
   open task after `/clear`. Not for ad-hoc coding outside a feature; that is
   `/specd:principles`.
 ---
@@ -18,7 +19,9 @@ description: >
 Builds the feature task by task. The main thread orchestrates: pick a task, dispatch the
 `implementer` in its own context, check its report, stop at G4 when the granularity says
 so, commit, flip the task. Code never enters this conversation; the implementer's summaries
-do. Task commits are `WIP:` commits; `deliver` offers to squash them before the first push.
+do. Task commits are `WIP:` commits until `deliver` records a PR (`deliver` offers to
+squash them before the first push); fixes after that carry their plain message, they stay
+in the history.
 
 ## Gate
 
@@ -41,7 +44,8 @@ the same command: the first `todo` task is where it continues.
 
 ## Outputs
 
-- Code and tests in `<code_root>`, one `WIP:` commit per landed task (its `commit:` line).
+- Code and tests in `<code_root>`, one commit per landed task (its `commit:` line, `WIP:`
+  prefixed while `pr` is empty).
 - `tasks.T<n>` flipped in `state.yml`; `gates.G4` stamped at each stop; `step: review`
   (`verify` when the feature is already on a PR) once no task is left.
 
@@ -71,7 +75,8 @@ the same command: the first `todo` task is where it continues.
    shown and left unstaged. When this task stops for G4 on its own (granularity `task`, or
    `risk: high`), leave it uncommitted and go to step 5. Otherwise commit it per
    `loop.md`: `state set tasks.T<n>=done`, stage the listed files plus `state.yml`, message
-   `WIP: ` + the task's `commit:` line (authority ≠ `none`; `commit: none` skips).
+   the task's `commit:` line with the prefix `loop.md` gives (authority ≠ `none`;
+   `commit: none` skips).
 5. **G4 stop** when `loop.md` says so: granularity `task`; `phase` and this task ends its
    phase; `end` and no `todo` remains; `risk: high`; or the last selected task. Pass G4 per
    `gates.md` (summary: tasks landed since the last stop, files, checks run, deviations,
@@ -79,12 +84,13 @@ the same command: the first `todo` task is where it continues.
    task as in step 4, continue at step 2 in this same context. Edit: one revision dispatch
    per task the request names (default: the last landed one) with the revision block of
    `implementer-prompt.md`, land it per step 4 (an already committed task gets a further
-   `WIP:` commit), then ask again. Reject: handoff; a pending task stays `todo` with its
+   commit), then ask again. Reject: handoff; a pending task stays `todo` with its
    files uncommitted in the tree, named under `Review`; `Next` is this command. No stop due:
    continue at step 2 without asking.
 6. **Finish.** No `todo` left in the feature: run `"${CLAUDE_PLUGIN_ROOT}/scripts/run-checks"
    --from <code_root>`. Red: one repair dispatch with the failing output, commit its files
-   as `WIP: fix(<scope>): make <check> pass`, re-run; still red: handoff with the output,
+   as `fix(<scope>): make <check> pass` (prefixed per `loop.md`), re-run; still red:
+   handoff with the output,
    `step` stays `implement`. Green: `state set step=verify` when `pr` is set in
    `state.yml` (the PR carries the human review; fixes came from `feedback`), else
    `step=review`. A run that ends with `todo` tasks left (a selection, a block) skips this
@@ -99,7 +105,8 @@ the same command: the first `todo` task is where it continues.
 - Writing or fixing code in the main thread "because it is a one-liner".
 - Two tasks in one dispatch, or a dispatch without the task's ACs quoted.
 - Pasting a layer skill's text into the prompt; the agent gets paths and reads them itself.
-- Committing a task before its own G4 stop, or without the `WIP: ` prefix.
+- Committing a task before its own G4 stop, or with the wrong prefix for the branch's
+  state (`WIP: ` before the PR, none after).
 - Committing files the agent did not list, or amending a task's commit.
 - Widening a selection silently to pull in a dependency; refuse and name it.
 - Skipping a G4 stop because the change looked small; the granularity is the user's setting.
