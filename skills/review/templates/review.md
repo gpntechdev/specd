@@ -1,6 +1,7 @@
 <!-- Written by /specd:review to <spec_root>/<feature>/review.md, one "## Round n" per run;
-     read by deliver and close. Findings keep their ids across rounds (F1.. continue). Each
-     resolution is fix (-> task id), accept (reason) or dispute (reason). -->
+     /specd:feedback appends "## PR round n" sections (PR comments as C<k>, resolution fix /
+     reply / skip). Read by deliver and docs. Findings keep their ids across rounds (F1..
+     continue). Each resolution is fix (-> task id), accept (reason) or dispute (reason). -->
 # Review: {{feature}}
 
 Spec: `spec.md` · Tasks: `tasks.md`

@@ -3,7 +3,8 @@ name: implement
 description: >
   Invoke whenever the user asks to implement, build, code or continue coding a feature that
   has an approved task list, or runs `/specd:implement [feature] [tasks]`; also as the next
-  step after `/specd:tasks` and after a review that sent findings back. It runs the tasks in
+  step after `/specd:tasks`, after a review that sent findings back and after
+  `/specd:feedback` turned PR comments into fix tasks. It runs the tasks in
   `tasks.md` one at a time through the implementer agent, or only the selected ones
   (`T1-T3`, `T1, T4, T5`), verifies each with the project checks, stops for your approval
   (G4) at the configured granularity and on every high-risk task, commits each task as a
@@ -41,8 +42,8 @@ the same command: the first `todo` task is where it continues.
 ## Outputs
 
 - Code and tests in `<code_root>`, one `WIP:` commit per landed task (its `commit:` line).
-- `tasks.T<n>` flipped in `state.yml`; `gates.G4` stamped at each stop; `step: review` once
-  no task is left.
+- `tasks.T<n>` flipped in `state.yml`; `gates.G4` stamped at each stop; `step: review`
+  (`verify` when the feature is already on a PR) once no task is left.
 
 ## Protocol
 
@@ -84,12 +85,14 @@ the same command: the first `todo` task is where it continues.
 6. **Finish.** No `todo` left in the feature: run `"${CLAUDE_PLUGIN_ROOT}/scripts/run-checks"
    --from <code_root>`. Red: one repair dispatch with the failing output, commit its files
    as `WIP: fix(<scope>): make <check> pass`, re-run; still red: handoff with the output,
-   `step` stays `implement`. Green: `state set step=review`. A run that ends with `todo`
-   tasks left (a selection, a block) skips this step. Whenever the run ends, a dirty
-   `state.yml` is committed alone as `spec(<feature>): implement`.
+   `step` stays `implement`. Green: `state set step=verify` when `pr` is set in
+   `state.yml` (the PR carries the human review; fixes came from `feedback`), else
+   `step=review`. A run that ends with `todo` tasks left (a selection, a block) skips this
+   step. Whenever the run ends, a dirty `state.yml` is committed alone as
+   `spec(<feature>): implement`.
 7. **Handoff** per [`../_shared/handoff.md`](../_shared/handoff.md). `Review`: deviations the
    agents reported, tests marked as looking wrong, uncommitted files left by a reject.
-   `Next: /specd:review <feature>` when `step` is `review`, else `/specd:implement <feature>`.
+   `Next: /specd:<step> <feature>` for the step set in 6, else `/specd:implement <feature>`.
 
 ## Anti-patterns
 
