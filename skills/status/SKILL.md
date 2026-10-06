@@ -34,12 +34,13 @@ next. It is safe to run at any time and never asks a question.
    `round/open`, PR (`yes` or `-`), updated date. A feature the script reports with an
    `error` gets a row saying `state.yml unreadable: <reason>`.
 3. **Warn.** Every feature with `step: closed` whose `updated` is older than `flow.keep_days`
-   days: one line, `<feature> kept for <n> days; /specd:close <feature> distills or cleans
+   days: one line, `<feature> kept for <n> days; /specd:close <feature> cleans
    it (spec-clean arrives with M7)`.
 4. **Point.** Resolve the feature: the argument, else `state find --branch <current>` (an
    ambiguous result is not an error here: skip this step and say `name a feature to see
    its next command`). For the resolved feature, `Next` is `/specd:<step> <feature>`;
-   `closed` → `nothing to do`; `start` → `/specd:specify <feature>`.
+   `closed` → `nothing to do`; `start` → `/specd:specify <feature>`; `close` with a PR →
+   second line `/specd:feedback <feature>` when comments arrived.
 5. **Handoff** per [`../_shared/handoff.md`](../_shared/handoff.md). `Produced: none`.
    `Review`: the warnings, or `none`. `State` and `Next` for the resolved feature, or
    `State: <n> features` and `Next: /specd:status <feature>` when none resolved.

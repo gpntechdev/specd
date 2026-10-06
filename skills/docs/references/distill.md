@@ -1,6 +1,7 @@
 # Distilling a feature
 
-What survives the spec folder, and where it goes.
+What survives the spec folder, and where it goes. Written by `docs` before the PR opens, so
+the PR carries it; the folder itself is removed later by `close`.
 
 ## Durable, goes to `docs/`
 
@@ -22,7 +23,17 @@ What survives the spec folder, and where it goes.
 ## Ephemeral, leaves with the folder
 
 The brief, the interview trail, the task list, the review rounds, `state.yml`. The PR body
-already summarises them and git history keeps the files at the delivering commit.
+already summarises them and git history keeps the files at the delivering commit. They stay
+until `close` removes the folder, after the PR is settled, because `feedback` and the fix
+loop still need them.
+
+## Refreshing after a feedback cycle
+
+When `features/<feature>.md` already exists: update `Shipped`, `PR`, the evidence column
+and `How to verify` from the current `tasks.md` and `state.yml`; add Notes lines for new
+accepted findings and PR replies. A decision whose title is already in `decisions/README.md`
+is not written again. Architecture and data-model deltas are asked again only for the
+sections the user names.
 
 ## Rules
 
