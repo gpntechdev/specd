@@ -78,7 +78,7 @@ layers:                      # M6. layer -> files implement adds to "Read first"
 | `git.ticket_key` | prefix string | start (branch names), deliver |
 | `flow.gate_granularity` | `task`, `phase`, `end` | implement; risky tasks always stop |
 | `flow.tdd` | bool | tasks (tests block), implement (tests first) |
-| `flow.critic` | `gates`, `off`, `always` | specify, design |
+| `flow.critic` | `gates` (before G1 and G2 on the full tier), `always` (quick's G1 too), `off` | specify, design; `critique` runs regardless |
 | `flow.retention` | `distill`, `clean`, `keep` | docs (write the record on `distill`) and close; trivial and quick default to `clean` |
 | `flow.keep_days` | integer | status, spec-clean |
 | `models.<role>` | model name | any skill that spawns an agent; roles only elsewhere |

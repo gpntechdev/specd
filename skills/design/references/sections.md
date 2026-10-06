@@ -12,10 +12,11 @@ selection so the user can veto it.
 | Sequences | two or more actors or services, an async hop (queue, job, webhook, retry), a timeout or ordering concern | one Mermaid `sequenceDiagram` per flow, happy path plus the error branch that matters |
 | UX flows | a screen, page, form, dialog, wizard, multi-step interaction or a state machine the user sees | the screens or states, transitions, and which AC each serves |
 
-Tier rule for this milestone: full and quick both run `design`; the tier does not change the
-selection. Trivial runs it too (light flows are M3). A feature with no signal at all still
-gets Approach and Decisions; if the architect finds no real decision, `## Decisions` says
-"none: the change follows <pattern at path:line>" and G2 is quick.
+Tier rule: only full runs `design`. `specify` applies this same table to a quick spec and
+proposes escalation when a section would be selected; a trivial feature has no spec. A full
+feature with no signal at all still gets Approach and Decisions; if the architect finds no
+real decision, `## Decisions` says "none: the change follows <pattern at path:line>" and G2
+is quick.
 
 Approach always has three sub-headings: `### Summary` (three sentences, no pointers),
 `### Builds on` (existing code reused, `path:line` each), `### Changes by area` (a table
