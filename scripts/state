@@ -2,17 +2,25 @@
 """Own a feature's state.yml: create it, read it, patch it, guard steps, find and list features.
 
 Usage:
-  state init  --file PATH --feature NAME --tier TIER [--retention R] [--step S] [--branch B]
-  state get   --file PATH [key ...]
-  state set   --file PATH key=value [key=value ...]
-  state check --file PATH --step STEP
-  state find  --spec-root DIR [--feature NAME] [--branch BRANCH]
-  state list  --spec-root DIR
+  state init     --file PATH --feature NAME --tier TIER [--retention R] [--step S] [--branch B]
+  state get      --file PATH [key ...]
+  state set      --file PATH key=value [key=value ...]
+  state check    --file PATH --step STEP
+  state escalate --file PATH --to TIER [--signal S]
+  state find     --spec-root DIR [--feature NAME] [--branch BRANCH]
+  state list     --spec-root DIR
 
 Keys are `top` or `section.key`. `set` patches lines in place (comments, order and unknown
-keys survive), may add missing `tasks.<id>` keys, accepts `now` as an ISO-8601 UTC timestamp,
-always sets `updated`, and is all-or-nothing. `check` exits 1 with `run_first` when STEP may
-not run yet; `--step feedback` passes whenever a PR is recorded and the feature is not closed. `find` resolves the feature by name, then by branch, then as the only open one.
+keys survive), may add missing `tasks.<id>` keys, accepts `now` as an ISO-8601 UTC timestamp
+and `step=next` as the step that follows the current one in the tier's order (skipping
+review and docs once a PR is recorded), always sets `updated`, and is all-or-nothing.
+`init` without `--step` picks the first step after start for the tier. `check` exits 1 with
+`run_first` when STEP may not run yet, is not in the tier's flow (`escalate` names the way
+up), or needs a reproduction first (fix features); `--step feedback` passes whenever a PR is
+recorded and the feature is not closed. `escalate` raises the tier, rewinds `step` to the
+first step the old order lacked, clears the gates from there on and keeps every file and
+done task. `find` resolves the feature by name, then by branch, then as the only open one.
+The step order per tier lives here and nowhere else.
 Every command prints JSON; refusals print one line on stderr and exit 1. Stdlib only.
 """
 import glob
@@ -30,6 +38,13 @@ STEPS = ["start", "specify", "design", "tasks", "implement", "review", "verify",
          "deliver", "close", "closed"]
 SIDE_STEPS = ("feedback",)  # not a position in the order: checked on their own condition
 TIERS = ("trivial", "quick", "full")
+ORDERS = {  # the step order per tier; docs joins a light order when retention is distill
+    "trivial": ["start", "implement", "deliver", "close", "closed"],
+    "quick": ["start", "specify", "implement", "review", "deliver", "close", "closed"],
+    "full": STEPS,
+}
+PR_SKIPS = ("review", "docs")  # once a PR is recorded, the fix loop skips these
+STEP_GATE = {"specify": "G1", "design": "G2", "tasks": "G3", "implement": "G4", "deliver": "G5"}
 RETENTIONS = ("", "distill", "clean", "keep")
 ADDABLE_SECTIONS = ("tasks",)
 
@@ -172,6 +187,42 @@ def patch(path, pairs):
     return out
 
 
+def order_for(tier, retention=""):
+    """The step order of a tier; light tiers run docs only when retention is distill."""
+    if tier not in ORDERS:
+        raise ValueError("state.yml has unknown tier %r" % tier)
+    steps = list(ORDERS[tier])
+    if tier != "full" and retention == "distill":
+        steps.insert(steps.index("deliver"), "docs")
+    return steps
+
+
+def order(data):
+    return order_for(str(data.get("tier", "full")), str(data.get("retention", "")))
+
+
+def next_step(data, current=None):
+    """The step after `current` (default: the file's step) in the tier's order."""
+    steps = order(data)
+    current = str(current or data.get("step", "start"))
+    if current not in steps:
+        raise ValueError("step %s is not in the %s flow" % (current, data.get("tier")))
+    rest = steps[steps.index(current) + 1:]
+    if str(data.get("pr", "")).strip():
+        rest = [s for s in rest if s not in PR_SKIPS]
+    if not rest:
+        raise ValueError("nothing follows %s" % current)
+    return rest[0]
+
+
+def resolve_next(path, pairs):
+    """Replace `step=next` with the real successor, read from the file as it is."""
+    if ("step", "next") not in pairs:
+        return pairs
+    target = next_step(load(path))
+    return [(k, target if (k, v) == ("step", "next") else v) for k, v in pairs]
+
+
 def reference_default():
     with open(REFERENCE, encoding="utf-8") as f:
         blocks = re.findall(r"```yaml\n(.*?)```", f.read(), re.S)
@@ -198,9 +249,11 @@ def cmd_init(argv):
     retention = opt(argv, "--retention", "")
     if retention not in RETENTIONS:
         raise ValueError("retention must be distill, clean or keep")
-    step = opt(argv, "--step", "specify")
-    if step not in STEPS:
+    step = opt(argv, "--step", "")
+    if step and step not in STEPS:
         raise ValueError("unknown step %s" % step)
+    if not step:
+        step = next_step({"tier": tier, "retention": retention}, "start")
     if os.path.exists(path):
         raise ValueError("%s exists; state init never overwrites" % path)
     os.makedirs(os.path.dirname(os.path.abspath(path)), exist_ok=True)
@@ -246,7 +299,7 @@ def cmd_set(argv):
         raise ValueError("no key=value given")
     if not os.path.isfile(path):
         raise ValueError("no such file: %s" % path)
-    changes = patch(path, pairs + [("updated", "now")])
+    changes = patch(path, resolve_next(path, pairs) + [("updated", "now")])
     return {"file": os.path.abspath(path), "changes": changes}
 
 
@@ -264,8 +317,10 @@ def cmd_check(argv):
         return {"ok": False, "reason": "no state file at %s" % path, "run_first": "/specd:start"}
     data = load(path)
     current = str(data.get("step", "start"))
-    if current not in STEPS:
-        raise ValueError("state.yml has unknown step %r" % current)
+    steps = order(data)
+    tier = str(data.get("tier", "full"))
+    if current not in steps:
+        raise ValueError("state.yml has step %r, not in the %s flow" % (current, tier))
     feature = data.get("feature", "")
     if step == "feedback":
         if current == "closed":
@@ -274,12 +329,23 @@ def cmd_check(argv):
             return {"ok": False, "reason": "no PR recorded for %s" % feature,
                     "run_first": "/specd:deliver %s" % feature}
         return {"ok": True, "feature": feature, "step": current, "rerun": False}
-    cur_i, want_i = STEPS.index(current), STEPS.index(step)
     if current == "closed" and step != "close":
         return {"ok": False, "reason": "%s is closed" % feature, "run_first": "/specd:start"}
+    if step not in steps:
+        out = {"ok": False, "reason": "%s is not in the %s flow" % (step, tier),
+               "run_first": "/specd:%s %s" % (current, feature)}
+        if tier != "full":
+            out["escalate"] = "/specd:start %s --tier %s" % (feature, TIERS[TIERS.index(tier) + 1])
+        return out
+    cur_i, want_i = steps.index(current), steps.index(step)
     if cur_i < want_i:
         return {"ok": False, "reason": "step is %s, not yet %s" % (current, step),
                 "run_first": "/specd:%s %s" % (current, feature)}
+    fix = data.get("fix") if isinstance(data.get("fix"), dict) else {}
+    if step in ("specify", "implement") and str(fix.get("symptom", "")).strip() \
+            and not str(fix.get("reproduced", "")).strip():
+        return {"ok": False, "reason": "%s is a fix without a reproduction" % feature,
+                "run_first": "/specd:fix %s" % feature}
     needs = []
     if step == "design":
         needs = [("G1", "specify")]
@@ -287,16 +353,54 @@ def cmd_check(argv):
         needs = [("G1", "specify")]
         if os.path.isfile(os.path.join(os.path.dirname(os.path.abspath(path)), "design.md")):
             needs.append(("G2", "design"))
-    elif step == "implement":
-        needs = [("G3", "tasks")]
+    elif step == "implement" and tier != "trivial":
+        needs = [("G3", "tasks" if "tasks" in steps else "specify")]
     elif step == "deliver" and current != "deliver":
-        return {"ok": False, "reason": "step is %s; deliver runs once docs is done" % current,
+        before = steps[steps.index("deliver") - 1]
+        return {"ok": False, "reason": "step is %s; deliver runs once %s is done" % (current, before),
                 "run_first": "/specd:%s %s" % (current, feature)}
     for gate, cmd in needs:
         if not gate_ok(data, gate):
             return {"ok": False, "reason": "%s not approved" % gate,
                     "run_first": "/specd:%s %s" % (cmd, feature)}
     return {"ok": True, "feature": feature, "step": current, "rerun": cur_i > want_i}
+
+
+def cmd_escalate(argv):
+    path, to = opt(argv, "--file"), opt(argv, "--to")
+    if not (path and to):
+        raise ValueError("escalate needs --file and --to")
+    if to not in TIERS:
+        raise ValueError("tier must be one of %s" % ", ".join(TIERS))
+    if not os.path.isfile(path):
+        raise ValueError("no such file: %s" % path)
+    data = load(path)
+    tier, current = str(data.get("tier", "full")), str(data.get("step", "start"))
+    if TIERS.index(to) <= TIERS.index(tier):
+        raise ValueError("%s is already %s; escalation only goes up" % (data.get("feature"), tier))
+    if current == "closed":
+        raise ValueError("%s is closed" % data.get("feature"))
+    old, new = order(data), order_for(to, str(data.get("retention", "")))
+    if current not in old:
+        raise ValueError("state.yml has step %r, not in the %s flow" % (current, tier))
+    added = [s for s in new if s not in old and new.index(s) < new.index(current)]
+    step = min(added + [current], key=new.index)
+    cleared = [STEP_GATE[s] for s in new[new.index(step):] if s in STEP_GATE
+               and str(data.get("gates", {}).get(STEP_GATE[s], "")).strip()]
+    pairs = [("tier", to), ("step", step),
+             ("triage.escalated", "%s->%s at %s" % (tier, to, current))]
+    signal = opt(argv, "--signal")
+    if signal:
+        had = str(data.get("triage", {}).get("signals", "")).strip()
+        pairs.append(("triage.signals", "%s,%s" % (had, signal) if had else signal))
+    pairs += [("gates.%s" % g, "") for g in cleared]
+    changes = patch(path, pairs + [("updated", "now")])
+    folder = os.path.dirname(os.path.abspath(path))
+    kept = sorted(os.path.basename(p) for p in glob.glob(os.path.join(folder, "*.md")))
+    tasks = data.get("tasks") if isinstance(data.get("tasks"), dict) else {}
+    return {"file": os.path.abspath(path), "from": tier, "to": to, "at": current, "step": step,
+            "cleared": cleared, "kept": kept,
+            "tasks_done": sum(1 for v in tasks.values() if v == "done"), "changes": changes}
 
 
 def features(spec_root):
@@ -353,8 +457,19 @@ def cmd_list(argv):
             counts[v if v in counts else "todo"] += 1
         gates = f.get("gates") if isinstance(f.get("gates"), dict) else {}
         review = f.get("review") if isinstance(f.get("review"), dict) else {}
+        triage = f.get("triage") if isinstance(f.get("triage"), dict) else {}
+        fix = f.get("fix") if isinstance(f.get("fix"), dict) else {}
+        step = str(f.get("step", ""))
+        try:
+            nxt = next_step(f) if step == "start" else step
+        except ValueError:
+            nxt = step
+        if str(fix.get("symptom", "")).strip() and not str(fix.get("reproduced", "")).strip() \
+                and step != "closed":
+            nxt = "fix"  # the reproduction comes before anything else
         out.append({
-            "feature": f["feature"], "tier": f.get("tier", ""), "step": f.get("step", ""),
+            "feature": f["feature"], "tier": f.get("tier", ""), "step": step, "next": nxt,
+            "escalated": triage.get("escalated", ""),
             "retention": f.get("retention", ""), "branch": f.get("branch", ""),
             "pr": f.get("pr", ""),
             "gates": {g: bool(str(gates.get(g, "")).strip()) for g in ("G1", "G2", "G3", "G4", "G5")},
@@ -367,7 +482,7 @@ def cmd_list(argv):
 
 
 COMMANDS = {"init": cmd_init, "get": cmd_get, "set": cmd_set, "check": cmd_check,
-            "find": cmd_find, "list": cmd_list}
+            "escalate": cmd_escalate, "find": cmd_find, "list": cmd_list}
 
 
 def main(argv):

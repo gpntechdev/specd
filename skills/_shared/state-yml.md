@@ -27,13 +27,19 @@ gates:                       # ISO-8601 UTC timestamp when approved, empty other
   G4: ""                     # implementation approved (re-stamped at every G4 stop)
   G5: ""                     # diff and review approved for delivery
 
-triage:                      # written by start
+triage:                      # written by start; escalated by `state escalate`
   proposed: ""               # tier the triage proposed before the user confirmed
   signals: ""                # comma-separated signals that fired, empty when none
+  escalated: ""              # "<from>-><to> at <step>" once the tier was raised mid-flow
 
 review:                      # written by review and feedback
   round: 0                   # reviewer rounds completed (PR rounds are counted in review.md)
   open: 0                    # findings or PR comments sent back to implement in the last round
+
+fix:                         # written by fix; empty for every other feature
+  symptom: ""                # the bug in one line; set marks the feature as a fix
+  repro: ""                  # command that shows the bug (exit != 0 today, 0 once fixed)
+  reproduced: ""             # ISO-8601 UTC when repro was seen failing; empty blocks specify and implement
 
 tasks: {}                    # T1: todo | done | skipped; mirrors tasks.md, one key per task
 
@@ -44,17 +50,34 @@ updated: ""                  # ISO-8601 UTC; every writer sets it
 ## The script
 
 ```
-state init  --file PATH --feature NAME --tier TIER [--retention R] [--step S] [--branch B]
-state get   --file PATH [key ...]           # JSON of the whole file or the named keys
-state set   --file PATH key=value ...       # patch in place; `now` = current UTC timestamp
-state check --file PATH --step STEP         # may STEP run? exit 1 with run_first otherwise
+state init     --file PATH --feature NAME --tier TIER [--retention R] [--step S] [--branch B]
+state get      --file PATH [key ...]        # JSON of the whole file or the named keys
+state set      --file PATH key=value ...    # patch in place; `now` = current UTC timestamp;
+                                            # `step=next` = the step after the current one
+state check    --file PATH --step STEP      # may STEP run? exit 1 with run_first otherwise
                                             # STEP feedback: ok when pr is set and not closed
-state find  --spec-root DIR [--feature NAME] [--branch BRANCH]
-state list  --spec-root DIR                 # every feature: step, gates, task counts
+state escalate --file PATH --to TIER [--signal S]   # raise the tier, rewind step, clear gates
+state find     --spec-root DIR [--feature NAME] [--branch BRANCH]
+state list     --spec-root DIR              # every feature: step, next, gates, task counts
 ```
 
 `set` may add `tasks.<id>` keys that do not exist yet; every other key must already be in
 the file. All-or-nothing: a refused key leaves the file untouched.
+
+## Step order per tier
+
+The order lives in the script (`ORDERS`), nowhere in prose. Trivial: start, implement,
+deliver, close. Quick: start, specify, implement, review, deliver, close. Full: every step.
+`docs` joins a light order only when the feature's `retention` is `distill`. Once `pr` is
+set, `next` skips `review` and `docs` (the fix loop). `init` without `--step` and
+`set step=next` both read the order, so a skill never names the step after its own: it sets
+`step=next` and prints the step the script's output shows as `Next`. `check` refuses a step
+outside the tier's flow and names the escalation command.
+
+`escalate` sets `tier`, `triage.escalated`, appends the signal to `triage.signals`, rewinds
+`step` to the earliest step the old order lacked (quick→full during implement lands on
+`design`; trivial→quick on `specify`) and clears the gates from that step on. Files and
+`done` tasks stay: that is what "carried over" means.
 
 ## Finding the feature
 
@@ -81,7 +104,8 @@ Every step takes an optional feature argument. Resolve it with `state find`, in 
   `tasks.md` is approved; `implement` flips each to `done` as it lands, `skipped` with a
   reason in `tasks.md`; `review` appends ids for review fixes.
 - `updated` is set by the script on every write.
-- Owners of the M2 keys: `branch`, `triage.*` by `start`; `pr` by `deliver`; `review.*` by
-  `review` (`review.open` also by `feedback`). A set `pr` routes the fix loop: `implement`
-  then ends at `verify`, `verify` at `deliver`, skipping `review` and `docs`. Later
+- Owners: `branch`, `triage.proposed`, `triage.signals` by `start`; `triage.escalated` by
+  `state escalate` (run from `start --tier`, `specify` or `implement`); `pr` by `deliver`;
+  `review.*` by `review` (`review.open` also by `feedback`); `fix.*` by `fix`. A set `pr`
+  routes the fix loop through `step=next`: `review` and `docs` are skipped. Later
   milestones add keys here and record them in `docs/DECISIONS.md`.
