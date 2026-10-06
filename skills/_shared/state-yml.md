@@ -15,7 +15,7 @@ Flat two-level YAML, like `specd.yml`, so the same parser rules apply. The only 
 feature: ""                  # folder name under spec_root: slug or ticket key
 tier: full                   # trivial | quick | full
 step: start                  # start | specify | design | tasks | implement | review | verify
-                             # | deliver | close | closed
+                             # | docs | deliver | close | closed
 retention: ""                # distill | clean | keep; empty = project default for the tier
 branch: ""                   # git branch created by start; empty when git.authority is none
 pr: ""                       # draft PR or MR URL written by deliver
@@ -31,9 +31,9 @@ triage:                      # written by start
   proposed: ""               # tier the triage proposed before the user confirmed
   signals: ""                # comma-separated signals that fired, empty when none
 
-review:                      # written by review
-  round: 0                   # review rounds completed
-  open: 0                    # findings sent back to implement in the last round
+review:                      # written by review and feedback
+  round: 0                   # reviewer rounds completed (PR rounds are counted in review.md)
+  open: 0                    # findings or PR comments sent back to implement in the last round
 
 tasks: {}                    # T1: todo | done | skipped; mirrors tasks.md, one key per task
 
@@ -48,6 +48,7 @@ state init  --file PATH --feature NAME --tier TIER [--retention R] [--step S] [-
 state get   --file PATH [key ...]           # JSON of the whole file or the named keys
 state set   --file PATH key=value ...       # patch in place; `now` = current UTC timestamp
 state check --file PATH --step STEP         # may STEP run? exit 1 with run_first otherwise
+                                            # STEP feedback: ok when pr is set and not closed
 state find  --spec-root DIR [--feature NAME] [--branch BRANCH]
 state list  --spec-root DIR                 # every feature: step, gates, task counts
 ```
@@ -81,4 +82,6 @@ Every step takes an optional feature argument. Resolve it with `state find`, in 
   reason in `tasks.md`; `review` appends ids for review fixes.
 - `updated` is set by the script on every write.
 - Owners of the M2 keys: `branch`, `triage.*` by `start`; `pr` by `deliver`; `review.*` by
-  `review`. Later milestones add keys here and record them in `docs/DECISIONS.md`.
+  `review` (`review.open` also by `feedback`). A set `pr` routes the fix loop: `implement`
+  then ends at `verify`, `verify` at `deliver`, skipping `review` and `docs`. Later
+  milestones add keys here and record them in `docs/DECISIONS.md`.

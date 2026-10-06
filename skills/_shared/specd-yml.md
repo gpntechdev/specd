@@ -33,7 +33,7 @@ flow:
   gate_granularity: phase    # task | phase | end: where implement stops for G4
   tdd: false                 # tests first; the coverage matrix exists either way
   critic: gates              # gates | off | always
-  retention: distill         # distill | clean | keep: close policy for full tier
+  retention: distill         # distill | clean | keep: docs + close policy for full tier
   keep_days: 30              # status warns about kept spec folders older than this
 
 models:                      # role -> model; the only place a model name may appear
@@ -79,7 +79,7 @@ layers:                      # M6. layer -> files implement adds to "Read first"
 | `flow.gate_granularity` | `task`, `phase`, `end` | implement; risky tasks always stop |
 | `flow.tdd` | bool | tasks (tests block), implement (tests first) |
 | `flow.critic` | `gates`, `off`, `always` | specify, design |
-| `flow.retention` | `distill`, `clean`, `keep` | close; trivial and quick default to `clean` |
+| `flow.retention` | `distill`, `clean`, `keep` | docs (write the record on `distill`) and close; trivial and quick default to `clean` |
 | `flow.keep_days` | integer | status, spec-clean |
 | `models.<role>` | model name | any skill that spawns an agent; roles only elsewhere |
 | `commands.*` | shell command | implement, verify, scaffold; empty = detect |

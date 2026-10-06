@@ -1,6 +1,7 @@
-<!-- Written by /specd:close (distill) to <docs_root>/features/<feature>.md; read on demand by
-     later features and by onboard refreshes. What shipped and where it lives, at most 60
-     lines; the spec folder is gone, git history holds the rest. -->
+<!-- Written by /specd:docs to <docs_root>/features/<feature>.md before the PR opens; refreshed
+     after a feedback cycle; read on demand by later features and by onboard refreshes. What
+     shipped and where it lives, at most 60 lines; close removes the spec folder, git history
+     holds the rest. -->
 # Feature: {{feature}}
 
 Shipped: {{date}} · PR: {{url or none}} · Tier: {{tier}}

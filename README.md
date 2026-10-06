@@ -42,13 +42,15 @@ cd <repo> && claude --plugin-dir /path/to/specd
 /specd:specify <feature>                  # spec.md, gate G1
 /specd:design <feature>                   # design.md by the architect agent, gate G2
 /specd:tasks <feature>                    # tasks.md with the coverage matrix, gate G3
-/specd:implement <feature>                # implementer agent per task, commit per task,
+/specd:implement <feature> [T1-T3]        # implementer agent per task, WIP commit per task until the PR,
                                           # gate G4 at the configured granularity
 /specd:review <feature>                   # reviewer agent in a fresh context; fixes become
                                           # tasks and send you back to implement
 /specd:verify <feature>                   # evidence for every acceptance criterion
-/specd:deliver <feature>                  # checks, gate G5, push, draft PR
-/specd:close <feature>                    # distill into docs/ and remove the spec folder
+/specd:docs <feature>                     # feature record, decisions, doc deltas, before the PR
+/specd:deliver <feature>                  # checks, gate G5, optional squash; you choose push / PR
+/specd:feedback <feature>                 # PR comments -> fix tasks (back to implement) or replies
+/specd:close <feature>                    # retention: remove or keep the spec folder, then merge
 ```
 
 `/specd:config key=value` changes a setting later (gate granularity, TDD, retention, PR
@@ -64,7 +66,8 @@ skills/_shared/   blocks referenced by many skills: gates, handoff, state, paths
 agents/           explorer, researcher, architect, implementer, reviewer
 hooks/            secrets guardrail
 scripts/          deterministic helpers: validate, resolve-paths, detect-repo,
-                  detect-commands, config-set, init-workspace, state, run-checks
+                  detect-commands, config-set, init-workspace, state, run-checks, squash-wip,
+                  pr-comments
 docs/             PLAN.md, DECISIONS.md, AUTHORING.md
 ```
 

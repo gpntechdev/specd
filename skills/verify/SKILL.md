@@ -5,8 +5,9 @@ description: >
   fill the evidence matrix, or runs `/specd:verify [feature]`; also as the next step after a
   clean `/specd:review`. It runs the project checks, confirms every acceptance criterion has
   evidence (a passing named test, a green check, or a manual note you give), writes that
-  evidence into the coverage matrix in `tasks.md` and hands off to deliver. Not for running
-  the app end to end; that is runtime-verify, a later milestone.
+  evidence into the coverage matrix in `tasks.md` and hands off to docs (or straight to
+  deliver when the feature is already on a PR). Not for running the app end to end; that is
+  runtime-verify, a later milestone.
 ---
 
 # Skill: verify
@@ -28,7 +29,8 @@ implementer's summaries are not evidence.
 
 ## Outputs
 
-- The matrix in `tasks.md` with every Evidence cell filled; `step: deliver` in `state.yml`.
+- The matrix in `tasks.md` with every Evidence cell filled; `step: docs` in `state.yml`
+  (`deliver` when `pr` is set).
 - One commit `spec(<feature>): verify` (authority ≠ `none`).
 
 ## Protocol
@@ -47,9 +49,11 @@ implementer's summaries are not evidence.
 5. **Gaps.** Show the matrix. A row still `missing`: offer to add a task (append to
    `tasks.md` under `Verify fixes`, `state set tasks.T<k>=todo step=implement`, handoff to
    `/specd:implement`) or to accept it with a reason written into the cell. All rows filled:
-   `state set step=deliver`, commit.
+   `state set step=docs`, or `step=deliver` when `pr` is set in `state.yml` (the record was
+   written before the PR), then commit.
 6. **Handoff** per [`../_shared/handoff.md`](../_shared/handoff.md). `Review`: manual and
-   accepted rows. `Next: /specd:deliver <feature>`.
+   accepted rows. `Next: /specd:docs <feature>`, or `/specd:deliver <feature>` on a PR with
+   one line: run `/specd:docs` first if the fixes changed what the feature record says.
 
 ## Anti-patterns
 

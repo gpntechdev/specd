@@ -1,0 +1,137 @@
+#!/usr/bin/env python3
+"""Fetch the comments of a pull request or merge request, printed as JSON.
+
+Usage: pr-comments --pr URL [--since ISO-8601] [--from DIR] [--dry-run]
+
+Reads the forge from the URL (github.com/<owner>/<repo>/pull/<n>, or
+<host>/<path>/-/merge_requests/<n> for GitLab) and asks its CLI: `gh api` for the inline
+review comments, the conversation comments and the reviews that carry a body; `glab api`
+for the merge request notes, system notes dropped. Comments created before --since are
+left out. `own` marks the comments of the CLI's logged-in user. Output, oldest first:
+{"host", "pr", "comments": [{"id", "kind", "author", "own", "path", "line", "body", "url",
+"created"}]}. --dry-run prints the calls it would make and runs none. No CLI, unknown host
+or a failing call: one line on stderr, exit 1. Stdlib only.
+"""
+import json
+import os
+import re
+import shutil
+import subprocess
+import sys
+from urllib.parse import quote
+
+GITHUB = re.compile(r"^https?://github\.com/([^/]+)/([^/]+?)(?:\.git)?/pull/(\d+)")
+GITLAB = re.compile(r"^https?://([^/]+)/(.+?)/-/merge_requests/(\d+)")
+
+
+def opt(argv, flag, default=None):
+    if flag in argv:
+        i = argv.index(flag)
+        if i + 1 >= len(argv):
+            print("specd: %s needs a value" % flag, file=sys.stderr)
+            sys.exit(2)
+        return argv[i + 1]
+    return default
+
+
+def refuse(msg):
+    print("specd: %s" % msg, file=sys.stderr)
+    return 1
+
+
+def call(cmd, cwd, dry, plan, lines=False):
+    """Run a CLI call; `lines` parses one JSON value per line (gh --paginate --jq '.[]')."""
+    plan.append(" ".join(cmd))
+    if dry:
+        return []
+    p = subprocess.run(cmd, cwd=cwd, capture_output=True, text=True)
+    if p.returncode != 0:
+        raise RuntimeError("%s failed: %s" % (cmd[0], (p.stderr or p.stdout).strip()[:200]))
+    out = p.stdout.strip()
+    if lines:
+        return [json.loads(l) for l in out.splitlines() if l.strip()]
+    return json.loads(out) if out else []
+
+
+def github(owner, repo, number, cwd, dry, plan):
+    if not dry and not shutil.which("gh"):
+        raise RuntimeError("gh is not installed; paste the comments instead")
+    base = "repos/%s/%s" % (owner, repo)
+    me = call(["gh", "api", "user", "--jq", "{login: .login}"], cwd, dry, plan)
+    login = (me or {}).get("login", "") if isinstance(me, dict) else ""
+    out = []
+    for kind, path in (("inline", "pulls/%s/comments" % number),
+                       ("conversation", "issues/%s/comments" % number),
+                       ("review", "pulls/%s/reviews" % number)):
+        for c in call(["gh", "api", "--paginate", "--jq", ".[]", "%s/%s" % (base, path)],
+                      cwd, dry, plan, lines=True):
+            body = (c.get("body") or "").strip()
+            if not body:
+                continue
+            author = (c.get("user") or {}).get("login", "")
+            out.append({"id": "%s-%s" % (kind, c.get("id")), "kind": kind, "author": author,
+                        "own": bool(login) and author == login, "path": c.get("path", ""),
+                        "line": c.get("line") or c.get("original_line") or "", "body": body,
+                        "url": c.get("html_url", ""),
+                        "created": c.get("created_at") or c.get("submitted_at") or ""})
+    return out
+
+
+def gitlab(host, project, number, cwd, dry, plan):
+    if not dry and not shutil.which("glab"):
+        raise RuntimeError("glab is not installed; paste the comments instead")
+    env_host = ["--hostname", host] if host != "gitlab.com" else []
+    me = call(["glab", "api"] + env_host + ["user"], cwd, dry, plan)
+    login = (me or {}).get("username", "") if isinstance(me, dict) else ""
+    out = []
+    path = "projects/%s/merge_requests/%s/notes?per_page=100" % (quote(project, safe=""), number)
+    for c in call(["glab", "api"] + env_host + [path], cwd, dry, plan):
+        if c.get("system"):
+            continue
+        body = (c.get("body") or "").strip()
+        if not body:
+            continue
+        author = (c.get("author") or {}).get("username", "")
+        pos = c.get("position") or {}
+        out.append({"id": "note-%s" % c.get("id"), "kind": "inline" if pos else "conversation",
+                    "author": author, "own": bool(login) and author == login,
+                    "path": pos.get("new_path", ""), "line": pos.get("new_line") or "",
+                    "body": body, "url": "https://%s/%s/-/merge_requests/%s#note_%s"
+                    % (host, project, number, c.get("id")), "created": c.get("created_at", "")})
+    return out
+
+
+def main(argv):
+    if "--help" in argv or "-h" in argv:
+        print(__doc__.strip())
+        return 0
+    url = opt(argv, "--pr")
+    if not url:
+        return refuse("--pr is required")
+    since = opt(argv, "--since", "")
+    cwd = os.path.abspath(opt(argv, "--from", "."))
+    dry = "--dry-run" in argv
+    plan = []
+    try:
+        m = GITHUB.match(url)
+        if m:
+            host, comments = "github", github(m.group(1), m.group(2), m.group(3), cwd, dry, plan)
+        else:
+            m = GITLAB.match(url)
+            if not m:
+                return refuse("unrecognised PR URL %s (github.com/.../pull/N or .../-/merge_requests/N)" % url)
+            host, comments = "gitlab", gitlab(m.group(1), m.group(2), m.group(3), cwd, dry, plan)
+    except RuntimeError as e:
+        return refuse(str(e))
+    if dry:
+        print(json.dumps({"host": host, "pr": url, "calls": plan}, indent=2))
+        return 0
+    if since:
+        comments = [c for c in comments if not c["created"] or c["created"] >= since]
+    comments.sort(key=lambda c: c["created"])
+    print(json.dumps({"host": host, "pr": url, "comments": comments}, indent=2))
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main(sys.argv[1:]))
