@@ -61,9 +61,12 @@ again to clean it). A merged PR is refused: the folder is already on the default
    authority ≥ `push` and `branch` is set: the same push as `deliver` in embedded mode, the
    `git.md` "Wrapper" rule when the wrapper is a second repo.
 6. **Wrapper branch** (only when `<workspace_root>` is another repo than `<code_root>`).
-   `worktree` set: `"${CLAUDE_PLUGIN_ROOT}/scripts/worktree" remove --feature <feature>
-   --from <wrapper_root>`; a refusal (dirty code tree) is printed as is and the run stops
-   here, everything above is already committed. Then, in `<wrapper_root>`, which must be on
+   `worktree` set: the session must not sit inside the worktree it removes (`resolve-paths`
+   without `--feature` reports a `worktree`): say `run /specd:close <feature> from
+   <wrapper_root>` and stop before anything is removed. Then
+   `"${CLAUDE_PLUGIN_ROOT}/scripts/worktree" remove --feature <feature> --from
+   <wrapper_root>`; a refusal (dirty code tree) is printed as is and the run stops here,
+   everything above is already committed. Then, in `<wrapper_root>`, which must be on
    its default branch with a clean tree (else say which branch or files block and stop):
    `git merge --no-ff <branch>` with the message `docs(<feature>): merge <branch>`, then
    `git branch -d <branch>`; push the default branch under the `git.md` "Wrapper" rule.

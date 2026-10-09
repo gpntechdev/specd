@@ -655,3 +655,19 @@ wrapper's settings do not apply.
 Consequences: one `init-workspace` with a layout prefix per mode, embedded output
 unchanged byte for byte; the client repo's own CLAUDE.md is still read by Claude Code
 when its files are touched, its hooks and settings are not.
+
+## 2026-10-09 M4: built, not done; the real wrapper run is the user's
+
+Context: PLAN 5 makes M4 done when two features run in parallel on a client-style repo with
+zero files added to it. As with M2, the plugin's own verification is headless.
+Decision: the milestone is marked built. The headless run on a scratch client repo covered
+wrapper init (client untouched, PLAN 3.1 layout), two quick features in worktrees carried
+through start, specify, implement, review and deliver with `git.authority: commit`, one
+driven from inside its worktree with no argument and one from the wrapper root by name,
+`status` from the root listing both, `close` removing the worktrees and merging the wrapper
+branch, a third feature started with worktrees off (both repos on one branch name), and
+the same quick flow in embedded mode with unchanged commits. Not exercised: push and PR
+(no remote), `feedback`, `docs` in the code repo, a `close` merge conflict, and a code
+repo that needs a dependency install per worktree.
+Consequences: the "done" mark follows the user's first wrapper around a real client repo;
+the parts to watch are the per-worktree install and the merge at `close`.
