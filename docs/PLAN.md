@@ -2,7 +2,7 @@
 
 Name: **specd** (read "spec'd": spec-driven). Command prefix `/specd:`, config `specd.yml`, embedded folder `.specd/`.
 
-Status: v4, updated 2026-09-24. v2 reworked modes, folders, flow and init; v3 split init into commands and restructured `docs/`; v4 settles the remaining open questions (section 6). Progress: M0 and M1 done, M2 built and awaiting its real-feature run (section 5). Git model amended by DECISIONS 2026-09-24: branch at `start`, commits per step.
+Status: v4, updated 2026-10-06. v2 reworked modes, folders, flow and init; v3 split init into commands and restructured `docs/`; v4 settles the remaining open questions (section 6). Progress: M0 and M1 done, M2 built and run on real features (DECISIONS 2026-10-05/06 record the amendments), M3 built and awaiting its week of mixed tasks (section 5). Git model amended by DECISIONS 2026-09-24: branch at `start`, commits per step. Light flows amended by DECISIONS 2026-10-06 M3: the step order per tier lives in `scripts/state`, specify-lite writes `spec.md` and `tasks.md`, trivial has G4 and G5.
 
 ## 1. Goal and non-goals
 
@@ -245,7 +245,7 @@ Each milestone ends in something you use on a real task; findings go to `DECISIO
 | M0 | Foundations | Repo scaffold, plugin manifest, `principles` skill, `specd.yml` schema, path resolution, no-attribution settings, `AUTHORING.md`, validator | Plugin installs locally; principles skill triggers on a coding request | done 2026-09-22 |
 | M1 | Init + onboard (embedded) | `init` (detection, `specd.yml`, CLAUDE.md, Context7), `onboard` with knowledge checklist, per-section state and resume, brownfield scans + gap interview, greenfield interviews + `scaffold` | Onboard on one real brownfield repo gives docs you'd sign off without context overflow; greenfield init + onboard + scaffold yields a project that builds and tests | done 2026-09-24; `config` skill added (see DECISIONS) |
 | M2 | Full flow | start (intake local/paste + triage), specify, design, tasks (+ test plan), implement, review (base), verify, deliver, close (`distill`/`clean`/`keep`), `status` | One real feature shipped as a draft PR; resume after `/clear` works. **MVP** | built 2026-09-24; awaiting the real-feature run (see DECISIONS) |
-| M3 | Light flows + critic | trivial, quick, `fix`, escalation, `critic` at gates, `critique` on demand | A week of mixed tasks without wanting to bypass the flow | |
+| M3 | Light flows + critic | trivial, quick, `fix`, escalation, `critic` at gates, `critique` on demand | A week of mixed tasks without wanting to bypass the flow | built 2026-10-06; the week of mixed tasks is the user's (see DECISIONS) |
 | M4 | Wrapper + parallel | Wrapper init, two-repo commits, worktrees per feature | Two features in parallel on a client-style repo with zero files added to it | |
 | M5 | Sources | `url` adapter, first MCP adapter, snapshot + refresh | A ticket becomes an approved spec without copy-paste | |
 | M6 | Toolsmith + audit | `toolsmith` command, allowlist search, quarantine, two-stage audit, `skills.lock`, generation fallback, specialist reviewers, MCP recommendations | Audit catches a seeded malicious test skill; one community skill installed via the pipeline | |
@@ -260,4 +260,4 @@ All previously open questions are now decisions (see the v4 rows in section 2): 
 
 ## 7. Next step
 
-M2: the full flow in embedded mode: `start` (intake local/paste + triage), `specify`, `design`, `tasks`, `implement`, `review`, `verify`, `deliver`, `close`, `status`. Done when one real feature ships as a draft PR and resume after `/clear` works. Findings from using M1 on a real repo go to `DECISIONS.md` first.
+M3 is built; its done-when is a week of mixed tasks (trivial, quick, fixes, one escalation) on a real repo without wanting to bypass the flow. Findings go to `DECISIONS.md` first; the triage table (`skills/start/references/triage.md`) and the escalation signals are the parts most likely to need tuning. Then M4: wrapper mode, two-repo commits, worktrees per feature, and the gate hook revisited with worktrees.

@@ -2,7 +2,8 @@
      colleague; no attribution, no tool names. Sections stay in this order. -->
 ## What
 
-<!-- Two to four sentences: the problem from spec.md and what the branch does about it. -->
+<!-- Two to four sentences: the problem from spec.md (trivial: the request from brief.md) and
+     what the branch does about it. -->
 
 ## Changes
 
@@ -11,18 +12,20 @@
 
 ## Verification
 
-<!-- From the coverage matrix: "<n> acceptance criteria: <a> by tests, <b> by checks, <c> manual".
-     Then the checks that ran (test, lint, typecheck, build) with their result. Manual notes
-     quoted one per line. -->
+<!-- Full: from the coverage matrix, "<n> acceptance criteria: <a> by tests, <b> by checks,
+     <c> manual". Quick: from the last review round, "<n> acceptance criteria: <a> covered,
+     <b> partial". Trivial: "no acceptance criteria (trivial)". Then the checks that ran
+     (test, lint, typecheck, build) with their result. Manual notes quoted one per line. -->
 
 ## Review
 
-<!-- Round count and the last verdict; accepted findings with their reasons, one per line, or "none". -->
+<!-- Round count and the last verdict; accepted findings with their reasons, one per line, or
+     "none"; trivial: "none (trivial, checks only)". -->
 
 ## Spec
 
-<!-- Paths on the branch: `<spec_root>/<feature>/spec.md`, `review.md`, and
-     `<docs_root>/features/<feature>.md` when docs wrote it. One closing line: before merging,
-     `/specd:close` removes the spec folder from the branch. -->
+<!-- Paths on the branch: `<spec_root>/<feature>/spec.md` and `review.md` when they exist
+     (trivial: `brief.md`), and `<docs_root>/features/<feature>.md` when docs wrote it. One
+     closing line: before merging, `/specd:close` removes the spec folder from the branch. -->
 
 {{Refs: <ticket key>}}

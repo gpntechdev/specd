@@ -28,6 +28,6 @@ The old `includeCoAuthoredBy` key is deprecated and not written.
   No trailers of any kind unless the project's conventions require one (such as `Refs:` for a
   ticket).
 - Branch names carry the ticket key when `git.ticket_key` is set: `<KEY>-<n>-<slug>`;
-  otherwise `<type>/<slug>`.
+  otherwise `<type>/<slug>`: `feat/<slug>` from `start`, `fix/<slug>` from `fix`.
 - The PR body describes what changed and how it was verified, in the same voice a colleague
   would use.

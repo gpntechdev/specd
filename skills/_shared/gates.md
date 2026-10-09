@@ -4,13 +4,17 @@
 Approval lives in the feature's `state.yml` (schema: [`state-yml.md`](./state-yml.md)), never
 only in the conversation. Gated steps: `specify` G1, `design` G2, `tasks` G3, `implement` G4,
 `deliver` and `scaffold` G5. `docs` and `feedback` have no gate; `feedback` is a side entry
-that `state check` allows whenever a PR is recorded.
+that `state check` allows whenever a PR is recorded. Light tiers have fewer gates: on quick,
+`specify` writes the task list too and its one gate stamps G1 and G3; trivial has only G4
+(the single task's stop) and G5.
 
 ## Entering any step
 
 1. Run `"${CLAUDE_PLUGIN_ROOT}/scripts/state" check --file <state.yml> --step <name>` first.
    On `ok: false`, refuse with one line built from its output: `<reason>; run <run_first>
-   first.` Then end with the handoff block. Never reason about the order yourself.
+   first.`, adding `or escalate with <escalate>` when the output has that key (the step is
+   not in the tier's flow). Then end with the handoff block. Never reason about the order
+   yourself.
 2. `rerun: true` means `step` is already past this one: the user is revisiting an earlier
    artifact. Say in one line that writing it clears every later gate (`G<n+1>`..`G5`), ask
    whether to continue, and on yes clear those gates with `state set` as the artifact is
@@ -24,8 +28,10 @@ that `state check` allows whenever a PR is recorded.
 2. Ask one question with three options: **approve**, **edit** (the user says what to change),
    **reject** (stop here). Use the assistant's question tool when available, otherwise ask in
    prose and wait.
-3. On **approve**: `state set gates.G<n>=now step=<next step>`, remove the artifact's draft
-   marker, then commit the artifact when `git.authority` is not `none`, then continue.
+3. On **approve**: `state set gates.G<n>=now step=next` (the script picks the step after
+   this one for the tier; its output names it, and that name is the handoff's `Next`),
+   remove the artifact's draft marker, then commit the artifact when `git.authority` is not
+   `none`, then continue.
 4. On **edit**: apply the change to the artifact on disk, then go back to step 1.
 5. On **reject**: leave `gates.G<n>` empty, set nothing else, and end with the handoff block
    (`Next` names this same command).

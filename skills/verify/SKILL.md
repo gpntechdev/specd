@@ -18,7 +18,8 @@ implementer's summaries are not evidence.
 
 ## Gate
 
-`state check --step verify`: `step` is `verify` or later.
+`state check --step verify`: `step` is `verify` or later (full tier only; on quick the
+review's AC table stands as evidence, trivial has no acceptance criteria).
 
 ## Inputs
 
@@ -49,11 +50,12 @@ implementer's summaries are not evidence.
 5. **Gaps.** Show the matrix. A row still `missing`: offer to add a task (append to
    `tasks.md` under `Verify fixes`, `state set tasks.T<k>=todo step=implement`, handoff to
    `/specd:implement`) or to accept it with a reason written into the cell. All rows filled:
-   `state set step=docs`, or `step=deliver` when `pr` is set in `state.yml` (the record was
-   written before the PR), then commit.
+   `state set step=next` (`docs`, or `deliver` when `pr` is set: the record was written
+   before the PR), then commit.
 6. **Handoff** per [`../_shared/handoff.md`](../_shared/handoff.md). `Review`: manual and
-   accepted rows. `Next: /specd:docs <feature>`, or `/specd:deliver <feature>` on a PR with
-   one line: run `/specd:docs` first if the fixes changed what the feature record says.
+   accepted rows. `Next: /specd:<step> <feature>` with the step reported; when it is
+   `deliver` on a PR, one line: run `/specd:docs` first if the fixes changed what the
+   feature record says.
 
 ## Anti-patterns
 

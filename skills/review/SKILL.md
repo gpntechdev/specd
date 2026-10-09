@@ -19,8 +19,9 @@ back to `implement` uses the same machinery as the first pass. Specialist passes
 
 ## Gate
 
-`state check --step review`: `step` is `review` or later. Round `review.round + 1`; a
-fourth round is refused: the user decides to ship or stop by hand.
+`state check --step review`: `step` is `review` or later (full and quick; trivial has no
+review). Round `review.round + 1`; a fourth round is refused: the user decides to ship or
+stop by hand.
 
 ## Inputs
 
@@ -63,8 +64,10 @@ fourth round is refused: the user decides to ship or stop by hand.
    **dispute** (recorded as accepted with the user's reason). A `missing` AC cannot be
    accepted; it is a fix or the spec changes (`/specd:specify`, which re-runs the flow).
 6. **Route.** `state set review.round=<n> review.open=<fix count>`. Fixes: `step=implement`,
-   `Next: /specd:implement <feature>` then this command again. None: `step=verify`,
-   `Next: /specd:verify <feature>`. Commit `review.md`, `tasks.md`, `state.yml`.
+   `Next: /specd:implement <feature>` then this command again. None: `state set step=next`
+   (`verify` on full, `deliver` on quick, where this round's AC table is the evidence),
+   `Next: /specd:<step> <feature>` with the step it reported. Commit `review.md`,
+   `tasks.md`, `state.yml`.
 7. **Handoff** per [`../_shared/handoff.md`](../_shared/handoff.md). `Review`: accepted findings
    the user may want to revisit, the verdict.
 

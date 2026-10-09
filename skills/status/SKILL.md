@@ -29,8 +29,9 @@ next. It is safe to run at any time and never asks a question.
 
 1. **Resolve.** `resolve-paths` (no config: `run /specd:init first`), `detect-repo`.
 2. **List.** `state list --spec-root <spec_root>`. No features: say so, `Next:
-   /specd:start <feature>`. Otherwise print one table: feature, tier, step, gates as
-   `G1 G2 G3 G4 G5` with `x` for approved and `.` otherwise, tasks `done/total`, review
+   /specd:start <feature>`. Otherwise print one table: feature, tier (`quick→full` when
+   `escalated` is set), step, gates as `G1 G2 G3 G4 G5` with `x` for approved, `.`
+   otherwise and `-` for a gate the tier never passes, tasks `done/total`, review
    `round/open`, PR (`yes` or `-`), updated date. A feature the script reports with an
    `error` gets a row saying `state.yml unreadable: <reason>`.
 3. **Warn.** Every feature with `step: closed` whose `updated` is older than `flow.keep_days`
@@ -38,9 +39,10 @@ next. It is safe to run at any time and never asks a question.
    it (spec-clean arrives with M7)`.
 4. **Point.** Resolve the feature: the argument, else `state find --branch <current>` (an
    ambiguous result is not an error here: skip this step and say `name a feature to see
-   its next command`). For the resolved feature, `Next` is `/specd:<step> <feature>`;
-   `closed` → `nothing to do`; `start` → `/specd:specify <feature>`; `close` with a PR →
-   second line `/specd:feedback <feature>` when comments arrived.
+   its next command`). For the resolved feature, `Next` is `/specd:<next> <feature>` with
+   `next` from the list output (the script turns `start` into the tier's first step and
+   names `fix` for a fix feature without a reproduction); `closed` → `nothing to do`;
+   `close` with a PR → second line `/specd:feedback <feature>` when comments arrived.
 5. **Handoff** per [`../_shared/handoff.md`](../_shared/handoff.md). `Produced: none`.
    `Review`: the warnings, or `none`. `State` and `Next` for the resolved feature, or
    `State: <n> features` and `Next: /specd:status <feature>` when none resolved.

@@ -19,14 +19,16 @@ as commits; its own work is the G5 view, the optional squash, the push and the d
 
 ## Gate
 
-`state check --step deliver`: `step` is exactly `deliver` (docs is done). G5 is passed here,
-again on every re-run after a feedback cycle.
+`state check --step deliver`: `step` is exactly `deliver` (the tier's previous step is done:
+`docs` on full, `review` on quick, `implement` on trivial). G5 is passed here, again on
+every re-run after a feedback cycle.
 
 ## Inputs
 
 - `resolve-paths`, `detect-repo` (default branch, remote host, remote URL), `state find`,
   `state check`, `run-checks`, `squash-wip`.
-- `<spec_root>/<feature>/state.yml`, `spec.md`, `review.md`, `tasks.md` (matrix).
+- `<spec_root>/<feature>/state.yml` (`tier`), `spec.md`, `review.md`, `tasks.md` (matrix),
+  each when present; `brief.md` on trivial, which has none of the three.
 - `<workspace_root>/specd.yml`: `git.authority`, `git.pr_host`, `git.ticket_key`.
 - [`../_shared/no-attribution.md`](../_shared/no-attribution.md),
   [`../_shared/gates.md`](../_shared/gates.md), [`../_shared/state-yml.md`](../_shared/state-yml.md).
@@ -46,10 +48,11 @@ again on every re-run after a feedback cycle.
 3. **G5 view.** `git -C <code_root> log <default>..HEAD --oneline` (and, when the branch
    has an upstream, `git log @{u}..HEAD --oneline` as "since the last push"), `git diff
    --stat <default>...HEAD`, the last review or PR round's verdict and accepted findings
-   from `review.md`, the matrix summary from `tasks.md` (ACs total, with test evidence,
-   with a check, manual, accepted), the docs written by `docs` or "none". Uncommitted
-   changes in the tree: list them and stop; they are committed by `implement` or by the
-   user, never here.
+   from `review.md`, the evidence (full: the matrix summary from `tasks.md`, ACs total, with
+   test evidence, with a check, manual, accepted; quick: the last review round's AC table,
+   covered / partial / missing counts; trivial: the brief's words and the checks that ran),
+   the docs written by `docs` or "none". Uncommitted changes in the tree: list them and
+   stop; they are committed by `implement` or by the user, never here.
 4. **Squash choice.** When the log holds `WIP:` commits, `git.authority` is not `none` and
    the branch has no upstream: ask one question, **squash** into one commit (show the title
    per `git.md`) or **keep** the commits as they are. Squash: run `squash-wip --dry-run`,
@@ -61,11 +64,12 @@ again on every re-run after a feedback cycle.
    **push** (≥ `push`), **record only** (G5 stamped, nothing leaves). Default is the first
    listed. `authority: none`: no question, record only. `pr` already set: the push updates
    the open PR; say so with its URL and never open another. Push per `git.md`. For the PR
-   render `./templates/pr-body.md` (title from `spec.md`'s problem line, what changed from
-   the commit list or, after a squash, from the squash commit's body, how it was verified
-   from the matrix, spec, docs and review paths, `Refs:` line when `git.ticket_key` names a
-   ticket) and open the draft with the host's CLI. CLI missing or `git.pr_host: none`:
-   push, then print the exact command and the compare URL.
+   render `./templates/pr-body.md` (title from `spec.md`'s problem line, or the brief's
+   words on trivial; what changed from the commit list or, after a squash, from the squash
+   commit's body; how it was verified from the evidence shown at G5; spec, docs and review
+   paths when they exist; `Refs:` line when `git.ticket_key` names a ticket) and open the
+   draft with the host's CLI. CLI missing or `git.pr_host: none`: push, then print the
+   exact command and the compare URL.
 6. **Record.** `state set gates.G5=now pr=<url or unchanged> step=close`, commit
    `spec(<feature>): deliver`, push again when a push was chosen so the state commit is on
    the remote.

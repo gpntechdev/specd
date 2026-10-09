@@ -41,7 +41,9 @@ clears G3..G5 on write; tasks already `done` stay `done`.
 1. **Resolve.** `resolve-paths`, `detect-repo`, `state find`, `state check --step tasks` per
    `gates.md`. Set `step=tasks`.
 2. **Draft.** Copy `./templates/tasks.md` to `<spec_root>/<feature>/tasks.md` and fill it
-   per `breakdown.md`: phases in build order, tasks `T1..` in dependency order, each with
+   per `breakdown.md` (a `tasks.md` that already exists, from a quick feature escalated to
+   full or from an earlier run, is revised in place: ids and `done` tasks stay, new tasks
+   get new ids): phases in build order, tasks `T1..` in dependency order, each with
    `goal`, `files`, `done-when`, `depends-on`, `risk`, `commit`, `covers`, a `layer` when
    `specd.yml` `layers` names one it touches, and with `flow.tdd: true` a `tests:` block
    naming the test cases derived from the ACs it covers.

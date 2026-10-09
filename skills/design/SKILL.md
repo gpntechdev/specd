@@ -17,7 +17,8 @@ context, so the design is grounded in the code without the code filling this con
 
 ## Gate
 
-G1 approved (`state check --step design`). `rerun: true` clears G2..G5 on write; ask first.
+G1 approved (`state check --step design`; full tier only, quick escalates when a design
+signal fires). `rerun: true` clears G2..G5 on write; ask first.
 
 ## Inputs
 
@@ -26,7 +27,8 @@ G1 approved (`state check --step design`). `rerun: true` clears G2..G5 on write;
 - `<docs_root>/project.md`, `architecture/overview.md` and the area files it names,
   `conventions.md`, `data-models/` when present.
 - `<workspace_root>/specd.yml`: `models.judgment`, `flow.critic`, `git.authority`.
-- [`../_shared/gates.md`](../_shared/gates.md), [`../_shared/state-yml.md`](../_shared/state-yml.md).
+- [`../_shared/gates.md`](../_shared/gates.md), [`../_shared/state-yml.md`](../_shared/state-yml.md),
+  [`../_shared/critic.md`](../_shared/critic.md).
 - [`./references/sections.md`](./references/sections.md),
   [`./references/architect-prompt.md`](./references/architect-prompt.md), `./templates/design.md`.
 
@@ -52,10 +54,9 @@ G1 approved (`state check --step design`). `rerun: true` clears G2..G5 on write;
    round, three rounds. Edit `design.md` in place as answers arrive; a dropped decision is
    removed, a changed one keeps its alternatives list. Leftovers go to `## Risks` as open
    items with an owner.
-5. **Critic hook point.** <!-- specd:critic-hook: M3 --> When `flow.critic` is `gates` or
-   `always` and `agents/critic.md` exists, dispatch it with `design.md`, `spec.md` and
-   `project.md` and fold its findings into `## Risks`. Until then say one line:
-   `critic: not available until M3`.
+5. **Critic** per `critic.md` when `flow.critic` is not `off`: dispatch `critic` at
+   `models.judgment` with `design.md`, `spec.md` and `project.md`, fold its findings into
+   `## Risks` as `critic C<k>` lines, say how many. Otherwise one line: `critic: off`.
 6. **G2** per `gates.md`: path plus at most ten lines (approach in one line, decisions by
    title, sections included, open risks). Approve: remove the marker, `state set gates.G2=now
    step=tasks`, clear G3..G5 when re-running, commit `spec(<feature>): design`.

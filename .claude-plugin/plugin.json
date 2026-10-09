@@ -1,7 +1,7 @@
 {
   "name": "specd",
   "version": "0.1.0",
-  "description": "Spec-driven development workflow for AI coding assistants: intake, spec, design, tasks, implement, review, verify, docs, deliver, feedback and close as /specd: skills. Stack-agnostic; runs embedded in a code repo or as a wrapper around it.",
+  "description": "Spec-driven development workflow for AI coding assistants: intake, spec, design, tasks, implement, review, verify, docs, deliver, feedback, close, fix and critique as /specd: skills, with trivial, quick and full tiers. Stack-agnostic; runs embedded in a code repo or as a wrapper around it.",
   "author": {
     "name": "Andrii Hapon",
     "email": "gpn.techdev@gmail.com"

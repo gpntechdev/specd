@@ -24,6 +24,38 @@ line ending in `tasks/T<n>.md` instead of a block; read that file for its body b
 dispatching, and nothing else from the folder. Phase boundaries for G4 come from `tasks.md`
 either way.
 
+## Trivial tier: the implicit task
+
+A trivial feature has `brief.md` and `state.yml`, nothing else. The task is composed in the
+main thread from the brief, shown in the board line, and dispatched like any other:
+
+- `T1` · goal: the brief's "Your words" (or "What was asked" when the words were a file)
+  · files: the implementer decides and lists them under Changed · done-when: the
+  observable the request names, plus every detected check green · depends-on: none ·
+  risk: low · commit: `<type>(<scope>): <summary>` derived from the wording (`fix` for a
+  defect, `feat` for new behaviour, `chore` otherwise; scope per `conventions.md`, else the
+  module the brief names) · covers: none.
+- `state set tasks.T1=todo` before the dispatch, so the board and resume work as usual.
+- The prompt uses the trivial variant in `implementer-prompt.md`: the brief's words stand in
+  for the acceptance criteria.
+- The one task is also the last one, so G4 always stops once (after approve: commit). A
+  selection argument is refused on trivial: there is only `T1`.
+
+## Escalation (trivial and quick)
+
+After a dispatch returns, before landing, read the report for the triage signals the brief
+could not show (`start/references/triage.md`): `## Deviations` or `## Changed` naming a
+migration or schema change (`schema`), a new dependency in a manifest (`dependency`), a
+changed public endpoint, event or module interface (`api`), or files across more than two
+modules (`modules:3`); `## Blocked` with two readings of the task (`ambiguous`). One
+fires: ask once, **escalate** to the next tier (trivial → quick, quick → full) or
+**continue** as is. Escalate: `"${CLAUDE_PLUGIN_ROOT}/scripts/state" escalate --file
+<state.yml> --to <tier> --signal <signal>`; do not commit the agent's files, name them in
+the handoff `Review` (the next dispatch of that task picks them up as an earlier attempt);
+`Next` is the step the script reported (`specify` for a trivial feature, `design` for a
+quick one). Continue: say so in the handoff and land the task. The signal is tested on
+every dispatch of a light feature, not only the first.
+
 ## Picking the next task
 
 - Candidates: tasks whose `state.yml` value is `todo`, within the selection when one was
@@ -63,7 +95,7 @@ revised task, `<commit line> (G4 edit)`, prefixed per the rule below.
   plus the files it named under `## Deviations`, plus `state.yml` with the task flipped to
   `done`. Anything else `git status` shows stays unstaged and is mentioned in the handoff.
 - The end-of-run repair commits as `fix(<scope>): make <check> pass` (same prefix rule), scope as in the
-  feature's tasks. G4 stamps and the final `step=review` ride in `spec(<feature>): implement`
+  feature's tasks. G4 stamps and the final `step=next` ride in `spec(<feature>): implement`
   when the run ends with `state.yml` dirty.
 - `git.authority: none`: no commit; the task still flips to `done` and the handoff says the
   tree holds uncommitted work.
