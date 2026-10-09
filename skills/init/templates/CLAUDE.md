@@ -13,7 +13,8 @@ Always loaded:
 @{{docs_root}}/lessons.md
 
 Read on demand: `{{docs_root}}/architecture/` (overview + one file per area),
-`{{docs_root}}/decisions/` (indexed), `{{docs_root}}/data-models/`, `{{docs_root}}/features/`.
+`{{docs_root}}/decisions/` (indexed), `{{docs_root}}/data-models/`, `{{docs_root}}/features/`
+(indexed; one record per shipped feature).
 
 Commits follow Conventional Commits and carry no AI attribution.
 

@@ -549,3 +549,29 @@ critique <path>` runs the same agent on any file and prints the findings; it wri
 so an approved artifact is only changed by re-running its step.
 Consequences: one agent, one prompt, three callers; the user resolves findings at the gate
 and nothing is folded as resolved.
+
+## 2026-10-09 M3 run: the PR body and the feature record are written for their readers
+
+Context: the coin-detail run on `specd-test-green` produced a PR body whose `Changes` were
+22 WIP subjects (`fix: make test pass`, `docs: record`), a `Verification` of AC counts and
+a `Review` of round numbers and finding ids, and a feature record with a flat file list and
+an `AC<n> · evidence:` list. The design's approach summary, UX flow and sequence diagrams
+died with the spec folder at `close`. Neither artefact told a reviewer what was built or a
+later agent what the feature is.
+Decision: `deliver` drafts one change summary per run (`skills/deliver/references/
+change-summary.md`): things, not commits, grouped `Added / Changed / Fixed / Removed /
+Dependencies / Tests`, drafted from `design.md` Changes by area (quick: `tasks.md`; trivial:
+the brief; fix: symptom, cause, change) and confirmed against `git diff --stat`. The same
+text is the squash commit body (`squash-wip --body-file`) and the PR's `What changed`. The
+PR body is Summary, What changed, How to verify, Notes for reviewers (accepted findings as
+facts, open risks), Links (blob links on the branch, source origin URLs, `Refs:`); no ids,
+no commit messages, no command names; re-deliver re-renders it and replaces the open PR's
+description. The feature record is What it does (+ entry points), User flow and How it
+works (the design's diagrams and summary, copied verbatim, AC ids stripped), Behaviour
+(ACs rewritten as grouped bullets, no ids or evidence), Where it lives (a table by role),
+Interfaces, Decisions, How to verify, Notes; cap 150 lines; `features/README.md` indexes
+the records.
+Consequences: `git log` and the PR tell the same story; the record is longer but carries the
+design's picture, which was the only copy; AC ids and evidence live only in the spec folder
+and git history, so a fix reads the behaviour and greps the tests. `deliver` now reads
+`design.md` and the source snapshots' `origin` headers.

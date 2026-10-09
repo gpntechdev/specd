@@ -1,31 +1,36 @@
-<!-- Rendered by /specd:deliver into the draft PR or MR body. Plain prose in the voice of a
-     colleague; no attribution, no tool names. Sections stay in this order. -->
-## What
+<!-- Rendered by /specd:deliver into the draft PR or MR body, and re-rendered on every
+     re-deliver (the host CLI updates the open PR's description). Written for a reviewer who
+     has not read the spec: plain prose in the voice of a colleague; no attribution, no tool or
+     command names, no task, finding or AC ids, no commit messages, no review rounds. Sections
+     stay in this order; a section with nothing to say is dropped, except Summary and What
+     changed. -->
+## Summary
 
-<!-- Two to four sentences: the problem from spec.md (trivial: the request from brief.md) and
-     what the branch does about it. -->
+<!-- Two to four sentences: the problem (spec.md Problem; trivial: brief.md "Your words") and
+     what the branch does about it, as the user sees it. -->
 
-## Changes
+## What changed
 
-<!-- One line per commit on the branch, from `git log <default>..HEAD --oneline`, message only;
-     after a squash, the squash commit's body lines instead. -->
+<!-- The change summary from references/change-summary.md, verbatim: label lines Added /
+     Changed / Fixed / Removed / Dependencies / Tests, each with bullets that name the thing,
+     its path and what it does. Same text as the squash commit body. -->
 
-## Verification
+## How to verify
 
-<!-- Full: from the coverage matrix, "<n> acceptance criteria: <a> by tests, <b> by checks,
-     <c> manual". Quick: from the last review round, "<n> acceptance criteria: <a> covered,
-     <b> partial". Trivial: "no acceptance criteria (trivial)". Then the checks that ran
-     (test, lint, typecheck, build) with their result. Manual notes quoted one per line. -->
+<!-- One line: the checks that ran (test, lint, typecheck, build) and their result. One line:
+     the test levels and where the tests live. Then "Try it:" with the manual steps, from the
+     matrix's manual rows (full), the last review round's AC notes (quick) or the brief
+     (trivial); omit the line when there are none. -->
 
-## Review
+## Notes for reviewers
 
-<!-- Round count and the last verdict; accepted findings with their reasons, one per line, or
-     "none"; trivial: "none (trivial, checks only)". -->
+<!-- What a reviewer would otherwise raise: accepted findings from review.md rewritten as facts
+     (what and why), open risks from design.md, anything not checked against a live system.
+     One line each, no ids. Drop the section rather than write "none". -->
 
-## Spec
+## Links
 
-<!-- Paths on the branch: `<spec_root>/<feature>/spec.md` and `review.md` when they exist
-     (trivial: `brief.md`), and `<docs_root>/features/<feature>.md` when docs wrote it. One
-     closing line: before merging, `/specd:close` removes the spec folder from the branch. -->
-
-{{Refs: <ticket key>}}
+<!-- Spec, decisions (`decisions/NNNN-*.md`) and the feature record, each as a link to the
+     file on the branch (git.md "Links"), one line. Then one line per brief.md source with the
+     origin URL from its snapshot header (ticket, task, design file). `Refs: <key>` last, when
+     git.ticket_key names a ticket. -->
