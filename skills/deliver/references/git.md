@@ -12,17 +12,17 @@
 ## Squash
 
 `implement` commits every task as `WIP: <its commit line>` until a PR is recorded. Before
-the first push, step 4
-offers to collapse the branch into one commit with
-`"${CLAUDE_PLUGIN_ROOT}/scripts/squash-wip" --from <code_root> --base <default> --title "<title>"`:
+the first push, step 5 offers to collapse the branch into one commit with
+`"${CLAUDE_PLUGIN_ROOT}/scripts/squash-wip" --from <code_root> --base <default> --title "<title>" --body-file <spec_root>/<feature>/change-summary.md`:
 a soft reset to the merge base and one commit, so the tree is unchanged and `before` in its
 output restores the old history (`git reset --hard <before>`). In embedded mode the
-`spec(<feature>): …` commits on the branch collapse into it too; its body lists every
-squashed subject. Title: Conventional Commit from the spec's problem line, `type(scope):
-summary`, type and scope as the tasks' commit lines use them, under 70 characters, no ticket
-key (that goes in the PR title and `Refs:`). The script refuses, and the step keeps the
-commits, when the branch already tracks a remote, the tree is dirty, or no `WIP:` commit
-exists; `git.authority: none` never asks.
+`spec(<feature>): …` commits on the branch collapse into it too. The body is the change
+summary ([`change-summary.md`](./change-summary.md)), so `git log` says what was built; the
+collapsed subjects appear only in the script's output. Title: Conventional Commit from the
+spec's problem line, `type(scope): summary`, type and scope as the tasks' commit lines use
+them, under 70 characters, no ticket key (that goes in the PR title and `Refs:`). The script
+refuses, and the step keeps the commits, when the branch already tracks a remote, the tree
+is dirty, or no `WIP:` commit exists; `git.authority: none` never asks.
 
 ## Push
 
@@ -36,7 +36,32 @@ After a feedback cycle the branch already tracks the remote: no squash is offere
 fix commits carry their plain Conventional Commit messages (`implement` drops the `WIP:`
 prefix once `pr` is set) and stay in the history, the push is
 a plain `git push`, and the PR in `state.yml` `pr` picks the commits up by itself. The G5
-view's "since the last push" log is what the reviewers will see as new.
+view's "since the last push" log is what the reviewers will see as new. After the push the
+body is rendered again from the current artefacts and the open PR's description is
+replaced, title untouched:
+
+| `git.pr_host` | Command |
+|---|---|
+| `github` | `gh pr edit <pr> --body-file <rendered body>` |
+| `gitlab` | `glab mr update <mr> --description "$(cat <rendered body>)"` |
+
+CLI missing: print the command with the rendered body's path, as for a first delivery.
+
+## Links
+
+Paths in the PR body are rendered as links to the file on the branch, so a reviewer can open
+the spec or the record from the PR. `<path>` is relative to the root of the repo that holds
+the file, `<branch>` from `state.yml`; in wrapper mode a path in the wrapper repo links to the
+wrapper's remote when it has one.
+
+| `git.pr_host` | Link |
+|---|---|
+| `github` | `<remote_url without .git>/blob/<branch>/<path>` |
+| `gitlab` | `<remote_url>/-/blob/<branch>/<path>` |
+| `none`, or a repo without a remote | the plain path in backticks |
+
+A source's `origin` (the first comment line of `sources/<feature>-<slug>.md`) is linked as
+it is when it is a URL; a pasted source is not linked.
 
 ## Draft PR or MR
 

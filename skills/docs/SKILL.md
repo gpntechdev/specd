@@ -22,20 +22,23 @@ refresh the record.
 
 ## Inputs
 
-- `resolve-paths`, `state find`, `state check`.
-- `<spec_root>/<feature>/state.yml` (`tier`, `retention`, `pr`), `spec.md`, `design.md`,
-  `tasks.md`, `review.md`.
+- `resolve-paths`, `detect-repo` (default branch), `state find`, `state check`.
+- `<spec_root>/<feature>/state.yml` (`tier`, `retention`, `pr`), `spec.md`, `design.md`
+  (the sections it has), `tasks.md`, `review.md`; `git diff --stat <default>...HEAD` in
+  `<code_root>`.
 - `<docs_root>/decisions/README.md`, `architecture/overview.md` and areas, `data-models/`,
-  `features/`.
+  `features/` and its `README.md`.
 - `<workspace_root>/specd.yml`: `flow.retention`, `git.authority`.
 - [`../_shared/state-yml.md`](../_shared/state-yml.md), `./templates/feature.md`,
+  `./templates/features-README.md`,
   [`../_shared/templates/decision.md`](../_shared/templates/decision.md),
   [`./references/distill.md`](./references/distill.md).
 
 ## Outputs
 
-- `<docs_root>/features/<feature>.md`, `decisions/NNNN-*.md` with README rows, approved
-  deltas in architecture or data-model files; or nothing, when skipped.
+- `<docs_root>/features/<feature>.md` and its row in `features/README.md`,
+  `decisions/NNNN-*.md` with README rows, approved deltas in architecture or data-model
+  files; or nothing, when skipped.
 - `step: deliver` in `state.yml`; one commit `docs(<feature>): record` when something was
   written (authority ≠ `none`).
 
@@ -46,8 +49,13 @@ refresh the record.
    `flow.retention` for full. Default is **write** when the policy is `distill`, **skip**
    otherwise; confirm in one question with the default first.
 2. **Write** per `distill.md`: (a) copy `./templates/feature.md` to
-   `<docs_root>/features/<feature>.md` and fill it from `spec.md`, `tasks.md`, `review.md`
-   and `state.yml` (PR URL when already set, else `pending`); (b) list the `### D<n>`
+   `<docs_root>/features/<feature>.md` and fill it from `spec.md` (what it does, the
+   behaviour groups), `design.md` (entry points, user flow, approach summary, sequences,
+   the Where-it-lives table from Changes by area, interfaces), the diff stat (which planned
+   files exist), `tasks.md` and `review.md` (how to verify, notes) and `state.yml` (PR URL
+   when already set, else `pending`); sections without a source are omitted. Then append
+   the feature's row to `features/README.md`, created from `./templates/features-README.md`
+   when missing, or refresh its row; (b) list the `### D<n>`
    blocks of `design.md` with one line each and ask which are durable per the test in
    `distill.md` (default: the ones that pass it); for each kept one copy
    `_shared/templates/decision.md` to `<docs_root>/decisions/NNNN-<kebab-title>.md` with the
@@ -68,6 +76,11 @@ refresh the record.
 ## Anti-patterns
 
 - Copying `spec.md` into `features/<feature>.md`; the record is what shipped, in a page.
+- AC ids or test evidence in the record; it describes the feature, the matrix leaves with
+  the spec folder.
+- A flat file list under `Where it lives`; the table with roles is the structure.
+- Dropping the design's diagrams because they are long; they are the picture of the feature
+  and the spec folder that holds them is deleted at `close`.
 - Recording a decision that has no alternatives, or renumbering existing decisions.
 - Editing an architecture or data-model doc without showing the patch first.
 - Removing the spec folder here; that is `close`, after the PR is settled.

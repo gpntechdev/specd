@@ -73,7 +73,7 @@ docs/
   architecture/       overview.md + one file per subsystem or area
   decisions/          0001-title.md … (context, decision, consequences) + README index
   data-models/        one file per domain, only if the project has them
-  features/           one file per shipped feature: what it does, where it lives; written by `docs`
+  features/           README index + one file per shipped feature: what it does, its flows, where it lives; written by `docs`
 ```
 
 `lessons.md` stays a single capped file on purpose: it is a holding area, and growth is the signal to promote items into `conventions.md` or a decision, or prune them. In brownfield, existing project docs are linked from `architecture/overview.md`, not duplicated.

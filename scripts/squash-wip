@@ -1,11 +1,13 @@
 #!/usr/bin/env python3
 """Squash a feature branch's commits into one Conventional Commit, printed as JSON.
 
-Usage: squash-wip --from DIR --base BRANCH --title TEXT [--dry-run]
+Usage: squash-wip --from DIR --base BRANCH --title TEXT [--body-file PATH] [--dry-run]
 
 Collapses every commit between `git merge-base BASE HEAD` and HEAD into one commit whose
-subject is TITLE and whose body lists the squashed subjects, oldest first, with the `WIP: `
-prefix stripped. Mechanics: `git reset --soft <merge-base>` then `git commit`; nothing is
+subject is TITLE and whose body is the content of PATH when --body-file is given (the
+change summary), else the squashed subjects, oldest first, with the `WIP: ` prefix
+stripped. The subjects are listed in the output either way. Mechanics: `git reset --soft
+<merge-base>` then `git commit`; nothing is
 rebased, so the tree is identical before and after. Refuses, with one line on stderr and
 exit 1, when the tree is dirty, HEAD is detached, the branch already has an upstream (a
 squash would then need a force push), there is nothing between base and HEAD, or no commit
@@ -48,15 +50,30 @@ def main(argv):
     root = os.path.abspath(opt(argv, "--from", "."))
     base = opt(argv, "--base")
     title = opt(argv, "--title")
+    body_file = opt(argv, "--body-file")
     dry = "--dry-run" in argv
     if not base or not title:
         return refuse("--base and --title are required")
+    body_text = None
+    if body_file:
+        try:
+            with open(body_file) as f:
+                body_text = f.read().strip()
+        except OSError as e:
+            return refuse("cannot read --body-file: %s" % e)
+        if not body_text:
+            return refuse("--body-file %s is empty" % body_file)
 
     code, branch, err = git(root, "symbolic-ref", "--short", "-q", "HEAD")
     if code != 0:
         return refuse("not on a branch in %s (%s)" % (root, err or "detached HEAD"))
-    code, status, _ = git(root, "status", "--porcelain")
-    if status:
+    code, status, _ = git(root, "status", "--porcelain", "--untracked-files=all")
+    dirty = status.splitlines()
+    if body_file:
+        # The body file is deliver's uncommitted draft and may sit inside the tree.
+        rel = os.path.relpath(os.path.abspath(body_file), root)
+        dirty = [l for l in dirty if l[3:].strip().strip('"') != rel]
+    if dirty:
         return refuse("tree is dirty; commit or stash first")
     code, upstream, _ = git(root, "rev-parse", "--abbrev-ref", "--symbolic-full-name", "@{u}")
     if code == 0:
@@ -73,9 +90,10 @@ def main(argv):
     if not any(s.startswith(PREFIX) for s in subjects):
         return refuse("no %s commit on %s; nothing to squash" % (PREFIX.strip(), branch))
 
-    body = [s[len(PREFIX):] if s.startswith(PREFIX) else s for s in subjects]
+    stripped = [s[len(PREFIX):] if s.startswith(PREFIX) else s for s in subjects]
+    body = body_text if body_text is not None else "\n".join(stripped)
     out = {"branch": branch, "base": merge_base, "before": before, "squashed": len(commits),
-           "subjects": body, "message": title + "\n\n" + "\n".join(body) + "\n"}
+           "subjects": stripped, "message": title + "\n\n" + body + "\n"}
     if dry:
         print(json.dumps(out, indent=2))
         return 0
